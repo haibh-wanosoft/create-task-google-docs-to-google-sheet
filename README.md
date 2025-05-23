@@ -8,7 +8,7 @@
 
 ## Requirements
 
-- một file google docs được viết theo format sau https://docs.google.com/document/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?tab=t.0#heading=h.ogtmjtsxdbdz
+- một file google docs được viết theo format sau https://docs.google.com/document/d/12YeJfzs2v4FBIscqSiqPB3JCgh2-X1bhSj72uhy6wjs/edit?tab=t.w66vwoc592q5#heading=h.ogtmjtsxdbdz
 
   - 1 heading trong file google docs thỏa mãn điều kiện để chuyển đổi thành 1 một row trong file google sheets khi:
     - heading đó có title kết thúc bằng một trong 3 cụm sau:
@@ -22,7 +22,7 @@
     positions（新規）query -> false
     ```
 
-- tạo sẵn một file google sheet với header là các cột sau:
+- tạo sẵn một file google sheet với header là các cột sau: (ví dụ: https://docs.google.com/spreadsheets/d/1gPoVdBm0sc3FyEK7aJJmpZli44Gzt-de8EcZUu-0GCE/edit?gid=0#gid=0)
 
   - No.
   - 項目
@@ -52,52 +52,73 @@
   sheetId = 1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU
   ```
 
-## Cách sử dụng qua url đã
+## Hướng dẫn setup deploy trên google app script
 
-- cần lấy docsId, docsTabId, sheetId
+- Bước 1: Truy cập https://script.google.com/home
 
-## 使用方法
+  ![Truy cập Google Apps Script](images/step1.png)
 
-#### nếu bạn muốn build từ đầu
+- Bước 2: Tạo mới một project, click button "New project"
 
-1. truy cập Apps Script https://script.google.com/home
+  ![Tạo mới một project](images/step2.png)
 
-## プロジェクト構成
+- Bước 3: Cấu hình project
 
-- `Code.gs`: プロジェクトのメインコード
-- `appsscript.json`: プロジェクト設定
+  ![Cấu hình project](images/step3.png)
 
-## カスタマイズ
+  - Bước 3.1: Đặt tên project, ví dụ: "Convert Google Docs to Google Sheets"
+  - Bước 3.2: Chọn "Service"
+    ![Chọn Service](images/step3.2.png)
+  - Bước 3.3: Chọn "Google docs API" và click button "Add"
+    ![Chọn Google Sheets API](images/step3.3.png)
+  - Bước 3.4: Copy code từ https://github.com/haibh-wanosoft/create-task-google-docs-to-google-sheet/blob/main/Code.gs và paste vào file Code.gs
+    ![Copy code](images/step3.4.png)
+  - Bước 3.5: click button "Deploy"
+    ![Deploy](images/step3.5.png)
+  - Bước 3.6: Chọn "New deployment"
+    ![New deployment](images/step3.6.png)
+  - Bước 3.7: Chọn select type
+    ![Web app](images/step3.7.png)
+  - Bước 3.8: Chọn "Web app"
+    ![Web app](images/step3.8.png)
+  - Bước 3.9: Nhập thông tin vào các ô sau:
+    ![Nhập thông tin](images/step3.9.png)
+    - ở mục "Who has access" chọn "Anyone" hoặc "Only myself" tùy vào bạn muốn ai có thể truy cập vào app này
+  - Bước 3.10: click button "Deploy"
+    ![Deploy](images/step3.10.png)
+  - Bước 3.11: Authorize access
+    ![Authorize access](images/step3.11.png)
+  - Bước 3.12: Chọn "Allow"
+  - Bước 3.13: Click button "Done"
+    ![Allow](images/step3.13.png)
+    - copy link trong ô "Web app URL" paste vào browser và truy cập
 
-以下の方法でプロジェクトを拡張できます：
+## Hướng dẫn sử dụng
 
-- カスタムメニューに機能を追加
-- HTML Service でユーザーインターフェースを作成
-- 他の Google サービスと連携
+- Bước 1: Truy cập vào link ở step 3.13
+  ![Truy cập vào link](images/instruction-step1.png)
+- Bước 2: Nhập thông tin vào các ô sau:
+  - Google Docs ID
+  - Docs タブ ID:
+  - Google Sheets ID:
+- Bước 3: Click button "抽出を実行"
 
-## 発生しうるケース
+---
 
-このスクリプトを実行する際に、以下のケースが発生する可能性があります：
+### kết quả nhận được
 
-### 1. 正常に実行される場合
+- trường hợp 1: Thành công
+  ![Thành công](images/success.png)
+- trường hợp 2: Cảnh báo vì file google sheet đã có bản ghi (không tính row header)
+  ![Thất bại](images/warning.png)
+- trường hợp 3: thất bại, vì bất kỳ lý do gì ví dụ:
+  - không có quyền truy cập
+  - không có quyền truy cập vào file google sheet
+  - ...
+    ![Thất bại](images/failed.png)
 
-Google Docs から Google Sheets にデータが正常に抽出され、成功メッセージが表示されます。ユーザーは Google Sheets または Google Docs を表示するためのリンクをクリックできます。
+### video demo
 
-### 2. パラメータが不足している場合
+<iframe src="https://drive.google.com/file/d/VIDEO_ID/preview" width="640" height="480" allow="autoplay"></iframe>
 
-必要なパラメータ（docsId、docsTabId、または sheetId）が不足している場合、エラーメッセージが表示され、提供されていないパラメータが示されます。
-
-### 3. シートにデータが既に存在する場合
-
-抽出先のシートに既にデータが存在する場合（ヘッダー行以外）、警告メッセージが表示されます。ユーザーは以下のオプションがあります：
-
-- 新しいシートを作成し、ヘッダーのみを保持
-- 現在のシートのデータを削除し、ヘッダーのみを保持
-
-### 4. Google Docs のタブが見つからない場合
-
-指定された Google Docs のタブ ID が見つからない場合、エラーメッセージが表示されます。
-
-### 5. その他のエラーが発生した場合
-
-予期せぬエラーが発生した場合、一般的なエラーメッセージが表示され、エラーの詳細が示されます。
+Tải xuống [video demo](video-demo.webm) nếu không xem được trực tiếp.
