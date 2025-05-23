@@ -1,14 +1,14 @@
 /**
- * Hàm doGet sửa lại để hiển thị form nhập liệu thay vì lấy từ parameter
+ * doGet function modified to display input form instead of taking parameters
  */
 function doGet(e) {
   try {
-    // Nếu có parameters được truyền vào, sử dụng cách cũ
+    // If parameters are passed, use the old method
     if (e.parameter.docsId && e.parameter.docsTabId && e.parameter.sheetId) {
       return processWithParameters(e);
     }
 
-    // Nếu không có parameters, hiển thị form
+    // If no parameters, display the form
     return createFormHtml();
   } catch (error) {
     // Xử lý lỗi chung
@@ -72,7 +72,7 @@ function doGet(e) {
 }
 
 /**
- * Hàm xử lý với parameters như cũ
+ * Process with parameters as before
  */
 function processWithParameters(e) {
   const docsId = e.parameter.docsId;
@@ -82,7 +82,7 @@ function processWithParameters(e) {
   const docUrlPrefix = `https://docs.google.com/document/d/${docsId}/edit?tab=${docsTabId}#heading=`;
   const sheetUrlPrefix = `https://docs.google.com/spreadsheets/d/${sheetId}/edit?gid=0#gid=0`;
 
-  // Kiểm tra xem có đủ tham số không
+  // Check if all parameters are provided
   if (!docsId || !docsTabId || !sheetId) {
     return HtmlService.createHtmlOutput(
       `
@@ -133,10 +133,10 @@ function processWithParameters(e) {
   }
 
   try {
-    // Gọi hàm chính để xử lý
+    // Call main function to process
     extractHeadingsToSheet(docsId, docsTabId, docUrlPrefix, sheetId);
 
-    // Tạo kết quả HTML để hiển thị
+    // Create HTML result to display
     const htmlOutput = HtmlService.createHtmlOutput(`
       <!DOCTYPE html>
       <html>
@@ -195,7 +195,7 @@ function processWithParameters(e) {
       </html>
     `);
 
-    // Thiết lập các thuộc tính cần thiết và trả về
+    // Set necessary properties and return
     return htmlOutput
       .setTitle("処理結果")
       .setFaviconUrl(
@@ -203,15 +203,15 @@ function processWithParameters(e) {
       )
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   } catch (processingError) {
-    // Kiểm tra nếu lỗi liên quan đến dữ liệu đã tồn tại trong sheet
+    // Check if error is related to existing data in sheet
     if (
       processingError.message.includes("既に") &&
       processingError.message.includes("レコード")
     ) {
-      // Lấy thông tin sheet từ lỗi
+      // Get sheet information from error
       const errorMessage = processingError.message;
 
-      // Tạo HTML thông báo lỗi đặc biệt cho trường hợp sheet đã có dữ liệu
+      // Create special error HTML notification for case where sheet already has data
       const htmlOutput = HtmlService.createHtmlOutput(`
         <!DOCTYPE html>
         <html>
@@ -281,14 +281,14 @@ function processWithParameters(e) {
         )
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     } else {
-      // Các lỗi khác - sử dụng thông báo lỗi chung
+      // Other errors - use general error message
       throw processingError;
     }
   }
 }
 
 /**
- * Tạo form HTML để người dùng nhập thông tin
+ * Create HTML form for user input
  */
 function createFormHtml() {
   const htmlOutput = HtmlService.createHtmlOutput(`
@@ -463,43 +463,43 @@ function createFormHtml() {
               return false;
             }
             
-            // Hiển thị giá trị trong console để debug
+            // Display values in console for debugging
             console.log("docsId:", docsId);
             console.log("docsTabId:", docsTabId);
             console.log("sheetId:", sheetId);
             
-            // Hiện thông báo đang xử lý
+            // Show processing message
             const submitButton = document.querySelector('.submit-btn');
             submitButton.innerHTML = '処理中...';
             submitButton.disabled = true;
             
-            // Hiển thị thông báo trạng thái
+            // Display status message
             const statusMessage = document.getElementById('statusMessage');
             statusMessage.className = 'status-message processing';
             document.getElementById('statusText').innerText = 'Google Docsからデータを抽出中...';
             
-            // Tùy chọn 1: Gửi form thông qua google.script.run
+            // Option 1: Send form via google.script.run
             google.script.run
               .withSuccessHandler(function(html) {
-                // Cập nhật thông báo trạng thái
+                // Update status message
                 statusMessage.className = 'status-message success';
                 document.getElementById('statusText').innerText = '完了しました！結果ページに移動中...';
                 
-                // Thêm thời gian chờ nhỏ để người dùng thấy thông báo thành công
+                // Add small delay so user can see success message
                 setTimeout(function() {
-                  // Thay thế toàn bộ trang bằng HTML kết quả
+                  // Replace entire page with result HTML
                   document.open();
                   document.write(html);
                   document.close();
                 }, 1000);
               })
               .withFailureHandler(function(error) {
-                // Cập nhật thông báo trạng thái
+                // Update status message
                 statusMessage.className = 'status-message error';
                 document.getElementById('statusText').innerText = 'エラーが発生しました';
                 
-                // Khôi phục nút submit và hiển thị lỗi
-                submitButton.innerHTML = '抽出を実行';
+                // Restore submit button and display error
+                submitButton.innerHTML = 'Execute Extraction';
                 submitButton.disabled = false;
                 alert('エラーが発生しました: ' + error);
                 console.error(error);
@@ -510,7 +510,7 @@ function createFormHtml() {
                 sheetId: sheetId
               });
             
-            // Tùy chọn 2: Dùng redirect URL như cũ (chỉ dùng nếu cách 1 không hoạt động)
+            // Option 2: Use redirect URL as before (only use if option 1 doesn't work)
             /*
             const baseUrl = window.location.href.split('?')[0];
             const redirectUrl = baseUrl + 
@@ -538,16 +538,16 @@ function createFormHtml() {
 }
 
 /**
- * Hàm để xử lý form sau khi submit
+ * Function to process form after submission
  */
 function processForm(formObject) {
   try {
-    // Lấy giá trị từ form
+    // Get values from form
     const docsId = formObject.docsId;
     const docsTabId = formObject.docsTabId;
     const sheetId = formObject.sheetId;
 
-    // Tạo một đối tượng parameter giả
+    // Create a mock parameter object
     const e = {
       parameter: {
         docsId: docsId,
@@ -556,16 +556,16 @@ function processForm(formObject) {
       },
     };
 
-    // Sử dụng hàm xử lý parameter và chuyển đổi thành chuỗi HTML để trả về
+    // Use parameter processing function and convert to HTML string to return
     const htmlOutput = processWithParameters(e);
 
-    // Đối với Google Apps Script client-side, cần trả về HTML dưới dạng chuỗi
-    // thay vì đối tượng HtmlOutput
+    // For Google Apps Script client-side, need to return HTML as string
+    // instead of HtmlOutput object
     return htmlOutput.getContent();
   } catch (error) {
     Logger.log("Form processing error: " + error);
 
-    // Tạo trang HTML thông báo lỗi
+    // Create an HTML error page
     const errorHtml = `
       <!DOCTYPE html>
       <html>
@@ -641,13 +641,13 @@ function extractHeadingsToSheet(docsId, docsTabId, docUrlPrefix, sheetId) {
   const sheetValues = sheet.getDataRange().getValues();
   const sheetName = sheet.getName();
   const spreadsheetName = SpreadsheetApp.openById(sheetId).getName();
-  const recordCount = sheetValues.length - 1; // Số lượng bản ghi (trừ header)
+  const recordCount = sheetValues.length - 1; // Number of records (excluding header)
 
   // Check if sheet already has data (excluding header)
   if (sheetValues.length > 1) {
     // Sheet already has data (excluding header)
     Logger.log(
-      `シートには既に${recordCount}件のレコードがあります。新しいデータの書き込みは行いません。`
+      `The sheet already has ${recordCount} records. New data will not be written.`
     );
 
     // Return detailed error message
@@ -714,8 +714,6 @@ function extractHeadingsToSheet(docsId, docsTabId, docUrlPrefix, sheetId) {
       const linkReference = headingLinks.find(
         (headingLink) => headingLink.headingName === text.trim()
       );
-
-      console.log("リンク参照を見つける", linkReference?.url);
 
       sheet.getRange(startRow, 1).setValue(index); // column A: index
       sheet.getRange(startRow, 2).setValue(`${prefixTitleTask} ${text}`); // column B: heading text
@@ -928,6 +926,9 @@ function applyColorRulesToColumnH(sheet) {
   sheet.setConditionalFormatRules(rules);
 }
 
+/**
+ * Check if input1 is a sub-heading of input2
+ */
 function isSubHeading(input1, input2) {
   const headingLevels = {
     [DocumentApp.ParagraphHeading.HEADING1]: 1,
@@ -944,6 +945,9 @@ function isSubHeading(input1, input2) {
   return level1 > level2;
 }
 
+/**
+ * Get label based on heading type
+ */
 function getLabelFromType(input) {
   const labels = {
     Mutation: "サーバーサイド",
@@ -958,6 +962,9 @@ function getLabelFromType(input) {
   return labels[input] || "選択";
 }
 
+/**
+ * Get task title prefix based on heading type
+ */
 function getPrefixTitleTask(input) {
   const labels = {
     Mutation: "[michibiku-server]",
@@ -972,6 +979,9 @@ function getPrefixTitleTask(input) {
   return labels[input] || "[michibiku-task]";
 }
 
+/**
+ * Create rich text value with hyperlink
+ */
 function createRichTextValue(url) {
   const prefix = "- 修正方針リンク: ";
   const fullText = prefix + url;
