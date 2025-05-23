@@ -6,23 +6,23 @@
 
 - Google Docs のヘッダーを Google Sheets に変換する
 
-## Requirements
+## 要件
 
-- một file google docs được viết theo format sau https://docs.google.com/document/d/12YeJfzs2v4FBIscqSiqPB3JCgh2-X1bhSj72uhy6wjs/edit?tab=t.w66vwoc592q5#heading=h.ogtmjtsxdbdz
+- 次の形式で書かれた Google ドキュメントファイル [Google Docs サンプル](https://docs.google.com/document/d/12YeJfzs2v4FBIscqSiqPB3JCgh2-X1bhSj72uhy6wjs/edit?tab=t.w66vwoc592q5#heading=h.ogtmjtsxdbdz)
 
-  - 1 heading trong file google docs thỏa mãn điều kiện để chuyển đổi thành 1 một row trong file google sheets khi:
-    - heading đó có title kết thúc bằng một trong 3 cụm sau:
+  - Google ドキュメントのヘッディングが Google シートの行に変換される条件を満たすには：
+    - そのヘッディングのタイトルが次の 3 つのいずれかで終わる必要があります：
       - (修正)
       - (削除)
       - (新規)
-  - ví dụ
+  - 例
     ```
     positions（修正） -> true
     positions -> false
     positions（新規）query -> false
     ```
 
-- tạo sẵn một file google sheet với header là các cột sau: (ví dụ: https://docs.google.com/spreadsheets/d/1gPoVdBm0sc3FyEK7aJJmpZli44Gzt-de8EcZUu-0GCE/edit?gid=0#gid=0)
+- 次のようなヘッダーを持つ Google シートを事前に作成する必要があります (例: [Google Sheet サンプル](https://docs.google.com/spreadsheets/d/1gPoVdBm0sc3FyEK7aJJmpZli44Gzt-de8EcZUu-0GCE/edit?gid=0#gid=0))
 
   - No.
   - 項目
@@ -36,89 +36,89 @@
   - start-date
   - end-date
 
-- cần lấy docsId, docsTabId, sheetId, ví dụ:
+- docsId、docsTabId、sheetId を取得する必要があります：
 
   ```
-  // docsId -> lấy từ url của file google docs https://docs.google.com/document/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?tab=t.0#heading=h.ogtmjtsxdbdz
+  // docsId -> Google ドキュメントのURLから取得 https://docs.google.com/document/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?tab=t.0#heading=h.ogtmjtsxdbdz
 
   docsId = 1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU
 
-  // docsTabId -> lấy từ url của file google docs https://docs.google.com/document/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?tab=t.0#heading=h.ogtmjtsxdbdz
+  // docsTabId -> Google ドキュメントのURLから取得 https://docs.google.com/document/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?tab=t.0#heading=h.ogtmjtsxdbdz
 
   docsTabId = t.0
 
-  // sheetId -> lấy từ url của file google sheet https://docs.google.com/spreadsheets/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?gid=0#gid=0
+  // sheetId -> Google シートのURLから取得 https://docs.google.com/spreadsheets/d/1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU/edit?gid=0#gid=0
 
   sheetId = 1ICQjxuF_C0hoSqn0GLnnD500UtypweAEKWy6oKCMYjU
   ```
 
-## Hướng dẫn setup deploy trên google app script
+## Google Apps Script でのデプロイ設定手順
 
-- Bước 1: Truy cập https://script.google.com/home
+- ステップ 1: [Google Apps Script](https://script.google.com/home) にアクセスする
 
-  ![Truy cập Google Apps Script](images/step1.png)
+  ![Google Apps Script にアクセス](images/step1.png)
 
-- Bước 2: Tạo mới một project, click button "New project"
+- ステップ 2: 新しいプロジェクトを作成し、「New project」ボタンをクリックする
 
-  ![Tạo mới một project](images/step2.png)
+  ![新しいプロジェクトを作成](images/step2.png)
 
-- Bước 3: Cấu hình project
+- ステップ 3: プロジェクトを設定する
 
-  ![Cấu hình project](images/step3.png)
+  ![プロジェクトを設定](images/step3.png)
 
-  - Bước 3.1: Đặt tên project, ví dụ: "Convert Google Docs to Google Sheets"
-  - Bước 3.2: Chọn "Service"
-    ![Chọn Service](images/step3.2.png)
-  - Bước 3.3: Chọn "Google docs API" và click button "Add"
-    ![Chọn Google Sheets API](images/step3.3.png)
-  - Bước 3.4: Copy code từ https://github.com/haibh-wanosoft/create-task-google-docs-to-google-sheet/blob/main/Code.gs và paste vào file Code.gs
-    ![Copy code](images/step3.4.png)
-  - Bước 3.5: click button "Deploy"
-    ![Deploy](images/step3.5.png)
-  - Bước 3.6: Chọn "New deployment"
-    ![New deployment](images/step3.6.png)
-  - Bước 3.7: Chọn select type
-    ![Web app](images/step3.7.png)
-  - Bước 3.8: Chọn "Web app"
-    ![Web app](images/step3.8.png)
-  - Bước 3.9: Nhập thông tin vào các ô sau:
-    ![Nhập thông tin](images/step3.9.png)
-    - ở mục "Who has access" chọn "Anyone" hoặc "Only myself" tùy vào bạn muốn ai có thể truy cập vào app này
-  - Bước 3.10: click button "Deploy"
-    ![Deploy](images/step3.10.png)
-  - Bước 3.11: Authorize access
-    ![Authorize access](images/step3.11.png)
-  - Bước 3.12: Chọn "Allow"
-  - Bước 3.13: Click button "Done"
-    ![Allow](images/step3.13.png)
-    - copy link trong ô "Web app URL" paste vào browser và truy cập
+  - ステップ 3.1: プロジェクト名を設定する (例: "Convert Google Docs to Google Sheets")
+  - ステップ 3.2: 「Service」を選択する
+    ![サービスを選択](images/step3.2.png)
+  - ステップ 3.3: 「Google docs API」を選択し、「Add」ボタンをクリックする
+    ![Google Sheets APIを選択](images/step3.3.png)
+  - ステップ 3.4: [GitHub リポジトリ](https://github.com/haibh-wanosoft/create-task-google-docs-to-google-sheet/blob/main/Code.gs) からコードをコピーし、Code.gs ファイルに貼り付ける
+    ![コードをコピー](images/step3.4.png)
+  - ステップ 3.5: 「Deploy」ボタンをクリックする
+    ![デプロイ](images/step3.5.png)
+  - ステップ 3.6: 「New deployment」を選択する
+    ![新規デプロイメント](images/step3.6.png)
+  - ステップ 3.7: タイプを選択する
+    ![ウェブアプリ](images/step3.7.png)
+  - ステップ 3.8: 「Web app」を選択する
+    ![ウェブアプリ](images/step3.8.png)
+  - ステップ 3.9: 次の情報を入力する：
+    ![情報を入力](images/step3.9.png)
+    - 「Who has access」の項目で、アプリにアクセスできる人に応じて「Anyone」または「Only myself」を選択する
+  - ステップ 3.10: 「Deploy」ボタンをクリックする
+    ![デプロイ](images/step3.10.png)
+  - ステップ 3.11: アクセスを許可する
+    ![アクセスを許可](images/step3.11.png)
+  - ステップ 3.12: 「Allow」を選択する
+  - ステップ 3.13: 「Done」ボタンをクリックする
+    ![許可](images/step3.13.png)
+    - 「Web app URL」欄のリンクをコピーし、ブラウザに貼り付けてアクセスする
 
-## Hướng dẫn sử dụng
+## 使用手順
 
-- Bước 1: Truy cập vào link ở step 3.13
-  ![Truy cập vào link](images/instruction-step1.png)
-- Bước 2: Nhập thông tin vào các ô sau:
+- ステップ 1: ステップ 3.13 のリンクにアクセスする
+  ![リンクにアクセス](images/instruction-step1.png)
+- ステップ 2: 以下の情報を入力する：
   - Google Docs ID
-  - Docs タブ ID:
-  - Google Sheets ID:
-- Bước 3: Click button "抽出を実行"
+  - Docs タブ ID
+  - Google Sheets ID
+- ステップ 3: 「抽出を実行」ボタンをクリックする
 
 ---
 
-### kết quả nhận được
+### 結果
 
-- trường hợp 1: Thành công
-  ![Thành công](images/success.png)
-- trường hợp 2: Cảnh báo vì file google sheet đã có bản ghi (không tính row header)
-  ![Thất bại](images/warning.png)
-- trường hợp 3: thất bại, vì bất kỳ lý do gì ví dụ:
-  - không có quyền truy cập
-  - không có quyền truy cập vào file google sheet
-  - ...
-    ![Thất bại](images/failed.png)
+- ケース 1: 成功
+  ![成功](images/success.png)
+- ケース 2: Google シートに既にレコードがある場合の警告 (ヘッダー行は除く)
+  ![警告](images/warning.png)
+- ケース 3: 失敗、いくつかの理由で：
+  - アクセス権限がない
+  - Google シートへのアクセス権限がない
+  - その他の理由
+    ![失敗](images/failed.png)
 
-### video demo
+### デモ動画
 
-<iframe src="https://drive.google.com/file/d/VIDEO_ID/preview" width="640" height="480" allow="autoplay"></iframe>
+[![デモ動画](images/video-thumbnail.png)](https://drive.google.com/file/d/1lKwxmNgGEFGQgZ2HxI4GtKi8HauYFKoQ/view)
 
-Tải xuống [video demo](video-demo.webm) nếu không xem được trực tiếp.
+上の画像をクリックすると、[Google Drive でデモ動画](https://drive.google.com/file/d/1lKwxmNgGEFGQgZ2HxI4GtKi8HauYFKoQ/view)をご覧いただけます。
