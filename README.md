@@ -70,7 +70,7 @@
   - ステップ 3.2: 「Service」を選択する
     ![サービスを選択](images/step3.2.png)
   - ステップ 3.3: 「Google docs API」を選択し、「Add」ボタンをクリックする
-    ![Google Sheets APIを選択](images/step3.3.png)
+    ![Google Docs APIを選択](images/step3.3.png)
   - ステップ 3.4: [GitHub リポジトリ](https://github.com/haibh-wanosoft/create-task-google-docs-to-google-sheet/blob/main/Code.gs) からコードをコピーし、Code.gs ファイルに貼り付ける
     ![コードをコピー](images/step3.4.png)
   - ステップ 3.5: 「Deploy」ボタンをクリックする
