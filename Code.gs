@@ -815,7 +815,6 @@ function createCheckboxToColumnE() {
 }
 
 function applyColorRulesToColumnE(sheet) {
-  const rules = sheet.getConditionalFormatRules();
 
   // Rule 1: If value is "未着手" (Not Started) then fill with light gray
   const rule1 = SpreadsheetApp.newConditionalFormatRule()
@@ -859,14 +858,9 @@ function applyColorRulesToColumnE(sheet) {
     .setRanges([sheet.getRange("E2:E")])
     .build();
 
-  // Override all existing rules for column E
-  rules.push(rule1);
-  rules.push(rule2);
-  rules.push(rule3);
-  rules.push(rule4);
-  rules.push(rule5);
-  rules.push(rule6);
-  sheet.setConditionalFormatRules(rules);
+  // Replace existing conditional formatting rules for column E
+  const newRules = [rule1, rule2, rule3, rule4, rule5, rule6];
+  sheet.setConditionalFormatRules(newRules);
 }
 
 function createCheckboxToColumnH() {
@@ -880,7 +874,6 @@ function createCheckboxToColumnH() {
 }
 
 function applyColorRulesToColumnH(sheet) {
-  const rules = sheet.getConditionalFormatRules();
 
   // Rule 1: If value is "選択" (Select) then fill with light gray
   const rule1 = SpreadsheetApp.newConditionalFormatRule()
@@ -917,13 +910,9 @@ function applyColorRulesToColumnH(sheet) {
     .setRanges([sheet.getRange("H2:H")])
     .build();
 
-  // Override all existing rules for column H
-  rules.push(rule1);
-  rules.push(rule2);
-  rules.push(rule3);
-  rules.push(rule4);
-  rules.push(rule5);
-  sheet.setConditionalFormatRules(rules);
+  // Replace existing conditional formatting rules for column H
+  const newRules = [rule1, rule2, rule3, rule4, rule5];
+  sheet.setConditionalFormatRules(newRules);
 }
 
 /**
