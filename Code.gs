@@ -499,7 +499,8 @@ function createFormHtml() {
                 document.getElementById('statusText').innerText = 'エラーが発生しました';
                 
                 // Restore submit button and display error
-                submitButton.innerHTML = 'Execute Extraction';
+                // Reset button text in Japanese after failure
+                submitButton.innerHTML = '抽出を実行';
                 submitButton.disabled = false;
                 alert('エラーが発生しました: ' + error);
                 console.error(error);
