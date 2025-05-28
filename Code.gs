@@ -972,14 +972,7 @@ function getPrefixTitleTask(input) {
  */
 function createRichTextValue(url) {
   const prefix = "- 修正方針リンク: ";
-
-  // Extract the heading ID from the URL
-  let displayText = url;
-  if (url.includes("#heading=")) {
-    displayText = url.split("#heading=")[1];
-  }
-
-  const fullText = prefix + displayText;
+  const fullText = prefix + url;
 
   const builder = SpreadsheetApp.newRichTextValue()
     .setText(fullText)
