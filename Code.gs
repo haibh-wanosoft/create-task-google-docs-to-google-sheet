@@ -975,14 +975,14 @@ function processGithubForm(formObject) {
 
 /**
  * Create GitHub issues from sheet with parameters
- * @param {string} spreadsheetId - ID of the Google Spreadsheet
- * @param {string} sheetName - Sheet name
- * @param {string} githubToken - GitHub token
- * @param {string} owner - Repository owner
- * @param {string} repo - Repository name
- * @param {string} templatePath - Path to the template
- * @param {boolean} enableSubIssue - Whether to create sub-issues
- * @param {number} parentIssueId - Parent issue ID
+ * @param {string} spreadsheetId - ID của Google Spreadsheet
+ * @param {string} sheetName - Tên sheet
+ * @param {string} githubToken - Token GitHub
+ * @param {string} owner - Chủ sở hữu repository
+ * @param {string} repo - Tên repository
+ * @param {string} templatePath - Đường dẫn đến template
+ * @param {boolean} enableSubIssue - Có tạo sub-issue hay không
+ * @param {number} parentIssueId - ID của issue cha
  */
 function createGithubIssuesFromSheet(
   spreadsheetId,
