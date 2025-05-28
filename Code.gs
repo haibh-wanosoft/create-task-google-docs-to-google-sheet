@@ -3,16 +3,38 @@
  */
 function doGet(e) {
   try {
-    // If parameters are passed, use the old method
+    // Log the parameters to see what's received
+    Logger.log("Request parameters: " + JSON.stringify(e.parameter));
+
+    // If parameters are passed, use the old method for extracting headings
     if (e.parameter.docsId && e.parameter.docsTabId && e.parameter.sheetId) {
       return processWithParameters(e);
     }
 
-    // If no parameters, display the form
-    return createFormHtml();
+    // If githubForm parameter is provided, show GitHub issue creation form
+    if (e.parameter.action === "githubForm") {
+      return createGithubFormHtml();
+    }
+
+    // If docsForm parameter is provided, show heading extraction form
+    if (e.parameter.action === "docsForm") {
+      Logger.log("Displaying docs form");
+      return createFormHtml();
+    }
+
+    // If createGithubIssues parameter is provided, process GitHub issue creation
+    if (e.parameter.action === "createGithubIssues") {
+      return processGithubIssueCreation(e);
+    }
+
+    // If no parameters, display the main menu
+    return createMainMenuHtml();
   } catch (error) {
-    // Xử lý lỗi chung
-    Logger.log("エラー: " + error.toString());
+    // Handle general errors with more detailed logging
+    Logger.log("Error in doGet: " + error.toString());
+    Logger.log("Stack trace: " + error.stack);
+
+    // Return error HTML
     return HtmlService.createHtmlOutput(
       `
       <!DOCTYPE html>
@@ -72,6 +94,1163 @@ function doGet(e) {
 }
 
 /**
+ * Create main menu HTML with two buttons for choosing functionality
+ */
+function createMainMenuHtml() {
+  const htmlOutput = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <meta charset="UTF-8">
+        <title>Michibiku ツール</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+          }
+          .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+          }
+          h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+          }
+          .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+          }
+          .btn {
+            display: block;
+            width: 280px;
+            padding: 15px 20px;
+            background-color: #4285f4;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            border: none;
+          }
+          .btn:hover {
+            background-color: #3367d6;
+          }
+          .btn-github {
+            background-color: #2ea44f;
+          }
+          .btn-github:hover {
+            background-color: #2c974b;
+          }
+          .feature-description {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+            height: 60px;
+          }
+          .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: white;
+            width: 280px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+          }
+          .card:hover {
+            transform: translateY(-5px);
+          }
+          .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          #loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+          }
+          .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #4285f4;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Michibiku タスク管理ツール</h1>
+          
+          <div class="btn-container">
+            <div class="card">
+              <h3>Google Docs から Google Sheets</h3>
+              <div class="feature-description">
+                Google Docsのヘッダーを抽出し、Google Sheetsにタスクとして一覧化します。
+              </div>
+              <button onclick="showDocsForm()" class="btn">Sheetsにタスクを抽出</button>
+            </div>
+            
+            <div class="card">
+              <h3>Google Sheets から GitHub</h3>
+              <div class="feature-description">
+                Google Sheetsのタスク一覧からGitHub Issuesを一括作成します。
+              </div>
+              <button onclick="showGithubForm()" class="btn btn-github">GitHub Issuesを作成</button>
+            </div>
+          </div>
+          
+          <div id="loading">
+            <div class="spinner"></div>
+            <span>読み込み中...</span>
+          </div>
+          
+          <div class="footer">
+            <p>© 2023 Michibiku Project - App Script Tool</p>
+          </div>
+        </div>
+        
+        <script>
+          function showDocsForm() {
+            document.getElementById('loading').style.display = 'block';
+            google.script.run
+              .withSuccessHandler(function(html) {
+                document.open();
+                document.write(html);
+                document.close();
+              })
+              .withFailureHandler(function(error) {
+                document.getElementById('loading').style.display = 'none';
+                alert('エラーが発生しました: ' + error);
+              })
+              .getDocsForm();
+          }
+          
+          function showGithubForm() {
+            document.getElementById('loading').style.display = 'block';
+            google.script.run
+              .withSuccessHandler(function(html) {
+                document.open();
+                document.write(html);
+                document.close();
+              })
+              .withFailureHandler(function(error) {
+                document.getElementById('loading').style.display = 'none';
+                alert('エラーが発生しました: ' + error);
+              })
+              .getGithubForm();
+          }
+        </script>
+      </body>
+    </html>
+  `);
+
+  return htmlOutput
+    .setTitle("Michibiku タスク管理ツール")
+    .setFaviconUrl(
+      "https://www.gstatic.com/images/branding/product/1x/apps_script_48dp.png"
+    )
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Create GitHub issue form HTML
+ */
+function createGithubFormHtml() {
+  const htmlOutput = HtmlService.createHtmlOutput(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <base target="_top">
+        <meta charset="UTF-8">
+        <title>GitHub Issues作成</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+          }
+          .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+          }
+          h1 {
+            color: #333;
+            text-align: center;
+          }
+          .form-group {
+            margin-bottom: 15px;
+          }
+          label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+          }
+          input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+          }
+          .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+          }
+          .submit-btn {
+            background-color: #2ea44f;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+          }
+          .submit-btn:hover {
+            background-color: #2c974b;
+          }
+          .submit-btn:disabled {
+            background-color: #b3b3b3;
+            cursor: not-allowed;
+          }
+          .instructions {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          .status-message {
+            display: none;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+          }
+          .status-message.processing {
+            display: block;
+            background-color: #e8f0fe;
+            color: #174ea6;
+          }
+          .status-message.error {
+            display: block;
+            background-color: #fce8e6;
+            color: #c5221f;
+            border: 1px solid #fad2cf;
+          }
+          .status-message.success {
+            display: block;
+            background-color: #e6f4ea;
+            color: #137333;
+            border: 1px solid #ceead6;
+          }
+          .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #4285f4;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+          }
+          .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 20px;
+            cursor: pointer;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <button onclick="returnToMainMenu()" class="btn-back">← メインメニューに戻る</button>
+          <h1>Google Sheets から GitHub Issuesを作成</h1>
+          
+          <div class="instructions">
+            <h3>使用方法：</h3>
+            <p>Google SheetsのデータからGitHub Issuesを作成するには、以下の情報を入力してください。</p>
+          </div>
+          
+          <form id="githubForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+              <label for="spreadsheetId">Google Spreadsheet ID:</label>
+              <input type="text" id="spreadsheetId" name="spreadsheetId" required>
+              <div class="hint">例：1gPoVdBm0sc3FyEK7aJJmpZli44Gzt-de8EcZUu-0GCE (URLから取得できます)</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="sheetName">Sheet名:</label>
+              <input type="text" id="sheetName" name="sheetName" required>
+              <div class="hint">例：Sheet1</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="githubToken">GitHub Token:</label>
+              <input type="text" id="githubToken" name="githubToken" required>
+              <div class="hint">GitHubの個人アクセストークン (PAT)</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="owner">リポジトリ所有者:</label>
+              <input type="text" id="owner" name="owner" required>
+              <div class="hint">例：octocat</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="repo">リポジトリ名:</label>
+              <input type="text" id="repo" name="repo" required>
+              <div class="hint">例：hello-world</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="templatePath">テンプレートパス:</label>
+              <input type="text" id="templatePath" name="templatePath" required>
+              <div class="hint">例：.github/ISSUE_TEMPLATE/normal-task.md</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="enableSubIssue">Sub Issueを有効にする:</label>
+              <input type="checkbox" id="enableSubIssue" name="enableSubIssue">
+              <div class="hint">作成したIssueを親IssueのタスクリストとしてMarkdownフォーマットで追加します（- [ ] #123 のような形式）</div>
+            </div>
+
+            <div class="form-group sub-issue-options" style="display:none;">
+              <label for="parentIssueId">親Issue ID:</label>
+              <input type="number" id="parentIssueId" name="parentIssueId" min="1">
+              <div class="hint">親IssueのID番号（例：123）。新しく作成されるIssueはこのIssueの説明文にタスクとして追加されます。</div>
+              <div class="token-notice" style="margin-top: 10px; padding: 8px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 4px; font-size: 13px; color: #856404;">
+                <strong>ℹ️ 注意:</strong> 作成されたIssueは親IssueのMarkdownタスクリストとして追加されます（- [ ] #123 形式）。<br>
+                Fine-grained tokenでも使用可能です。
+              </div>
+            </div>
+            
+            <div id="statusMessage" class="status-message">
+              <div class="spinner"></div>
+              <span id="statusText">処理中...</span>
+            </div>
+            
+            <button type="submit" class="submit-btn">GitHub Issuesを作成</button>
+          </form>
+          
+          <div class="footer">
+            <p>注意：GitHub Issuesを作成するには、適切な権限を持つGitHub Tokenが必要です。</p>
+          </div>
+        </div>
+        
+        <script>
+          function returnToMainMenu() {
+            google.script.run
+              .withSuccessHandler(function(html) {
+                document.open();
+                document.write(html);
+                document.close();
+              })
+              .getMainMenu();
+          }
+        
+          function handleSubmit(event) {
+            event.preventDefault();
+            const form = document.getElementById('githubForm');
+            const spreadsheetId = form.spreadsheetId.value.trim();
+            const sheetName = form.sheetName.value.trim();
+            const githubToken = form.githubToken.value.trim();
+            const owner = form.owner.value.trim();
+            const repo = form.repo.value.trim();
+            const templatePath = form.templatePath.value.trim();
+            const enableSubIssue = form.enableSubIssue.checked;
+            const parentIssueId = enableSubIssue ? form.parentIssueId.value.trim() : '';
+            
+            // Validate form inputs
+            if (!spreadsheetId || !sheetName || !githubToken || !owner || !repo || !templatePath) {
+              alert('すべてのフィールドを入力してください。');
+              return false;
+            }
+            
+            // Validate parent issue ID if sub-issue is enabled
+            if (enableSubIssue && !parentIssueId) {
+              alert('親IssueのIDを入力してください。');
+              return false;
+            }
+            
+            // Show processing message
+            const submitButton = document.querySelector('.submit-btn');
+            submitButton.innerHTML = '処理中...';
+            submitButton.disabled = true;
+            
+            // Display status message
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.className = 'status-message processing';
+            document.getElementById('statusText').innerText = 'GitHub Issuesを作成中...';
+            
+            // Send form via google.script.run
+            google.script.run
+              .withSuccessHandler(function(html) {
+                // Update status message
+                statusMessage.className = 'status-message success';
+                document.getElementById('statusText').innerText = '完了しました！結果ページに移動中...';
+                
+                // Add small delay so user can see success message
+                setTimeout(function() {
+                  // Replace entire page with result HTML
+                  document.open();
+                  document.write(html);
+                  document.close();
+                }, 1000);
+              })
+              .withFailureHandler(function(error) {
+                // Update status message
+                statusMessage.className = 'status-message error';
+                document.getElementById('statusText').innerText = 'エラーが発生しました';
+                
+                // Restore submit button and display error
+                submitButton.innerHTML = 'GitHub Issuesを作成';
+                submitButton.disabled = false;
+                alert('エラーが発生しました: ' + error);
+                console.error(error);
+              })
+              .processGithubForm({
+                spreadsheetId: spreadsheetId,
+                sheetName: sheetName,
+                githubToken: githubToken,
+                owner: owner,
+                repo: repo,
+                templatePath: templatePath,
+                enableSubIssue: enableSubIssue,
+                parentIssueId: parentIssueId
+              });
+            
+            return false;
+          }
+
+          document.getElementById('enableSubIssue').addEventListener('change', function() {
+            const subIssueOptions = document.querySelector('.sub-issue-options');
+            if (this.checked) {
+              subIssueOptions.style.display = 'block';
+            } else {
+              subIssueOptions.style.display = 'none';
+            }
+          });
+        </script>
+      </body>
+    </html>
+  `);
+
+  return htmlOutput
+    .setTitle("GitHub Issues作成ツール")
+    .setFaviconUrl(
+      "https://www.gstatic.com/images/branding/product/1x/apps_script_48dp.png"
+    )
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Process GitHub issue creation form
+ */
+function processGithubForm(formObject) {
+  try {
+    // Get values from form
+    const spreadsheetId = formObject.spreadsheetId;
+    const sheetName = formObject.sheetName;
+    const githubToken = formObject.githubToken;
+    const owner = formObject.owner;
+    const repo = formObject.repo;
+    const templatePath = formObject.templatePath;
+    const enableSubIssue = formObject.enableSubIssue || false;
+    const parentIssueId = formObject.parentIssueId
+      ? Number(formObject.parentIssueId)
+      : null;
+
+    // Call function to create GitHub issues
+    const result = createGithubIssuesFromSheet(
+      spreadsheetId,
+      sheetName,
+      githubToken,
+      owner,
+      repo,
+      templatePath,
+      enableSubIssue,
+      parentIssueId
+    );
+
+    // Check if there are task-relation errors
+    const hasTaskErrors = result.errors.some(
+      (error) =>
+        error.includes("sub-task") ||
+        error.includes("⚠️") ||
+        error.includes("parent issue") ||
+        error.includes("task")
+    );
+
+    // Create HTML result to display
+    const htmlOutput = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <base target="_top">
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+              text-align: center;
+            }
+            .success {
+              color: green;
+              font-weight: bold;
+            }
+            .warning {
+              color: #856404;
+              background-color: #fff3cd;
+              border: 1px solid #ffeeba;
+              padding: 12px;
+              border-radius: 4px;
+              margin: 15px 0;
+              text-align: left;
+            }
+            .info-box {
+              color: #0c5460;
+              background-color: #d1ecf1;
+              border: 1px solid #bee5eb;
+              padding: 12px;
+              border-radius: 4px;
+              margin: 15px 0;
+              text-align: left;
+            }
+            .container {
+              max-width: 700px;
+              margin: 0 auto;
+              padding: 20px;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+              background-color: #f9f9f9;
+            }
+            .btn {
+              display: inline-block;
+              padding: 10px 15px;
+              margin: 10px 5px;
+              background-color: #2ea44f;
+              color: white;
+              text-decoration: none;
+              border-radius: 4px;
+              font-weight: bold;
+              cursor: pointer;
+              border: none;
+            }
+            .btn-secondary {
+              background-color: #6c757d;
+              color: white;
+            }
+            .results {
+              text-align: left;
+              margin: 20px 0;
+              max-height: 300px;
+              overflow-y: auto;
+              background-color: #f5f5f5;
+              padding: 15px;
+              border-radius: 5px;
+              border: 1px solid #ddd;
+            }
+            .issue-item {
+              margin-bottom: 8px;
+              padding-bottom: 8px;
+              border-bottom: 1px solid #eee;
+            }
+            .issue-number {
+              font-weight: bold;
+              color: #0366d6;
+            }
+            .subtask-badge {
+              display: inline-block;
+              background-color: #6f42c1;
+              color: white;
+              font-size: 12px;
+              padding: 3px 8px;
+              border-radius: 10px;
+              margin-left: 8px;
+              vertical-align: middle;
+            }
+            .error-section {
+              background-color: #f8d7da;
+              border: 1px solid #f5c6cb;
+              border-radius: 4px;
+              padding: 10px 15px;
+              margin-top: 15px;
+            }
+            .error-item {
+              color: #721c24;
+              margin: 5px 0;
+            }
+            .summary {
+              margin-top: 15px;
+              padding: 10px;
+              background-color: #f0f0f0;
+              border-radius: 4px;
+              text-align: center;
+              font-weight: bold;
+            }
+            .stats {
+              display: flex;
+              justify-content: space-around;
+              margin: 15px 0;
+              text-align: center;
+            }
+            .stat-item {
+              padding: 10px;
+              border-radius: 4px;
+              min-width: 120px;
+            }
+            .stat-value {
+              font-size: 24px;
+              font-weight: bold;
+              margin: 5px 0;
+            }
+            .stat-label {
+              font-size: 14px;
+              color: #666;
+            }
+            .created {
+              background-color: #e6f4ea;
+              color: #137333;
+            }
+            .skipped {
+              background-color: #e8eaed;
+              color: #5f6368;
+            }
+            .errors {
+              background-color: #fce8e6;
+              color: #c5221f;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2 class="success">✅ GitHub Issuesの処理が完了しました！</h2>
+            <p>Google Sheetsの行からGitHub Issuesが処理されました。</p>
+            <p>スプレッドシートID: ${spreadsheetId}</p>
+            <p>シート名: ${sheetName}</p>
+            <p>リポジトリ: ${owner}/${repo}</p>
+            
+            ${
+              hasTaskErrors && enableSubIssue
+                ? `
+            <div class="warning">
+              <p><strong>⚠️ 注意:</strong> Issueは作成されましたが、親Issueのタスクリストに追加できませんでした。</p>
+              <p>詳細はエラーセクションを確認してください。</p>
+            </div>
+            `
+                : ""
+            }
+            
+            ${
+              enableSubIssue &&
+              parentIssueId &&
+              !hasTaskErrors &&
+              result.issuesCreated.length > 0
+                ? `
+            <div class="info-box">
+              <p><strong>ℹ️ 情報:</strong> ${result.issuesCreated.length}件のIssueが作成され、親Issue #${parentIssueId}のタスクリストに追加されました。</p>
+              <p>タスクリストは親Issueの説明欄に「- [ ] #123 Issue title」形式で追加されています。</p>
+            </div>
+            `
+                : ""
+            }
+            
+            <div class="stats">
+              <div class="stat-item created">
+                <div class="stat-value">${result.issuesCreated.length}</div>
+                <div class="stat-label">作成されたIssue</div>
+              </div>
+              <div class="stat-item skipped">
+                <div class="stat-value">${result.skipped || 0}</div>
+                <div class="stat-label">スキップされた行</div>
+              </div>
+              <div class="stat-item errors">
+                <div class="stat-value">${result.errors.length}</div>
+                <div class="stat-label">エラー</div>
+              </div>
+            </div>
+            
+            <div class="results">
+              <h3>作成されたIssues:</h3>
+              ${
+                result.issuesCreated.length > 0
+                  ? `
+                <div class="summary">${
+                  result.issuesCreated.length
+                }件のIssueが作成されました</div>
+                ${result.issuesCreated
+                  .map(
+                    (issue) =>
+                      `<div class="issue-item">
+                    <span class="issue-number">#${issue.number}</span> - 
+                    <a href="${issue.html_url}" target="_blank">${
+                        issue.title
+                      }</a>
+                    ${
+                      issue.isSubIssue
+                        ? `<span class="subtask-badge">タスク in #${issue.parentIssue}</span>`
+                        : ""
+                    }
+                  </div>`
+                  )
+                  .join("")}
+                `
+                  : `<p>新しく作成されたIssueはありません。</p>`
+              }
+              
+              ${
+                result.skipped > 0
+                  ? `<div class="info-box" style="margin-top: 15px;">
+                <p><strong>ℹ️ 情報:</strong> ${result.skipped}行はすでにIssueが作成済みのためスキップされました。</p>
+              </div>`
+                  : ""
+              }
+              
+              ${
+                result.errors.length > 0
+                  ? `<div class="error-section">
+                <h3>エラー:</h3>
+                ${result.errors
+                  .map(
+                    (error) =>
+                      `<div class="error-item">
+                    ${error}
+                  </div>`
+                  )
+                  .join("")}
+                </div>`
+                  : ""
+              }
+            </div>
+            
+            <div>
+              <a class="btn" href="https://github.com/${owner}/${repo}/issues" target="_blank">GitHubでIssuesを表示</a>
+              ${
+                enableSubIssue && parentIssueId
+                  ? `
+              <a class="btn" href="https://github.com/${owner}/${repo}/issues/${parentIssueId}" target="_blank">親Issueを表示</a>
+              `
+                  : ""
+              }
+              <a class="btn" href="https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit#gid=0" target="_blank">スプレッドシートを表示</a>
+              <button class="btn btn-secondary" onclick="returnToMainMenu()">メインメニューに戻る</button>
+            </div>
+          </div>
+          <script>
+            function returnToMainMenu() {
+              google.script.run
+                .withSuccessHandler(function(html) {
+                  document.open();
+                  document.write(html);
+                  document.close();
+                })
+                .getMainMenu();
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    return htmlOutput;
+  } catch (error) {
+    Logger.log("GitHub form processing error: " + error);
+
+    // Create an HTML error page
+    const errorHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <base target="_top">
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+              text-align: center;
+            }
+            .error {
+              color: red;
+              font-weight: bold;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+              border: 1px solid #ccc;
+              border-radius: 5px;
+              background-color: #f9f9f9;
+            }
+            .btn {
+              display: inline-block;
+              padding: 10px 15px;
+              margin: 10px 5px;
+              background-color: #007bff;
+              color: white;
+              text-decoration: none;
+              border-radius: 4px;
+              font-weight: bold;
+              cursor: pointer;
+              border: none;
+            }
+            .btn-secondary {
+              background-color: #6c757d;
+              color: white;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h2 class="error">❌ エラーが発生しました！</h2>
+            <p>GitHub Issuesの作成中にエラーが発生しました。</p>
+            <p>エラーの詳細：</p>
+            <div style="text-align: left; background-color: #ffe6e6; padding: 10px; border-radius: 5px; margin-top: 10px;">
+              <code>${error.toString()}</code>
+            </div>
+            <p>
+              <button class="btn btn-secondary" onclick="returnToMainMenu()">メインメニューに戻る</button>
+            </p>
+          </div>
+          <script>
+            function returnToMainMenu() {
+              google.script.run
+                .withSuccessHandler(function(html) {
+                  document.open();
+                  document.write(html);
+                  document.close();
+                })
+                .getMainMenu();
+            }
+          </script>
+        </body>
+      </html>
+    `;
+
+    return errorHtml;
+  }
+}
+
+/**
+ * Create GitHub issues from sheet with parameters
+ * @param {string} spreadsheetId - ID của Google Spreadsheet
+ * @param {string} sheetName - Tên sheet
+ * @param {string} githubToken - Token GitHub
+ * @param {string} owner - Chủ sở hữu repository
+ * @param {string} repo - Tên repository
+ * @param {string} templatePath - Đường dẫn đến template
+ * @param {boolean} enableSubIssue - Có tạo sub-issue hay không
+ * @param {number} parentIssueId - ID của issue cha
+ */
+function createGithubIssuesFromSheet(
+  spreadsheetId,
+  sheetName,
+  githubToken,
+  owner,
+  repo,
+  templatePath,
+  enableSubIssue = false,
+  parentIssueId = 1
+) {
+  // Get sheet from id
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  const data = sheet.getDataRange().getValues();
+
+  // Find index of columns
+  const header = data[0];
+  const itemIndex = header.indexOf("項目");
+  const itemIndexLink = header.indexOf("メモ");
+
+  // Find or create "Issue" column
+  let issueColumnIndex = header.indexOf("Issue");
+  if (issueColumnIndex === -1) {
+    // Column doesn't exist, create it
+    issueColumnIndex = header.length;
+    sheet.getRange(1, issueColumnIndex + 1).setValue("Issue");
+  }
+
+  if (itemIndex < 0 || itemIndexLink < 0) {
+    throw new Error('Column "項目" or "メモ" not found in the sheet');
+  }
+
+  // Get template from GitHub
+  const templateRaw = getTemplateFromRepo(
+    githubToken,
+    owner,
+    repo,
+    templatePath
+  );
+  const templateBody = stripFrontMatter(templateRaw);
+
+  // Track results
+  const result = {
+    issuesCreated: [],
+    errors: [],
+    skipped: 0, // Track how many rows were skipped because they already had an issue
+  };
+
+  // Collect all created issues to add as tasks later (performance optimization)
+  const createdIssues = [];
+
+  // Loop through each row (skip header)
+  for (let i = 1; i < data.length; i++) {
+    const issueTitle = data[i][itemIndex];
+    const issueLink = data[i][itemIndexLink];
+    const existingIssue = data[i][issueColumnIndex];
+
+    // Skip if no title or link, or if issue already exists
+    if (!issueTitle || !issueLink) continue;
+
+    // Check if the row already has an issue number in the Issue column
+    if (existingIssue) {
+      Logger.log(
+        `Skipping row ${i + 1} as it already has an issue: ${existingIssue}`
+      );
+      result.skipped++;
+      continue;
+    }
+
+    try {
+      const issueBody = insertLinkIntoSection(
+        templateBody,
+        "## リンク",
+        issueLink
+      );
+
+      // Create new issue
+      const response = createIssueWithTemplate(
+        githubToken,
+        owner,
+        repo,
+        issueTitle,
+        issueBody
+      );
+      const responseData = JSON.parse(response.getContentText());
+
+      // Update the sheet with the issue number
+      const issueNumberLink = createGithubIssueLink(
+        owner,
+        repo,
+        responseData.number
+      );
+      sheet
+        .getRange(i + 1, issueColumnIndex + 1)
+        .setRichTextValue(issueNumberLink);
+
+      // Log success and add to results
+      Logger.log(
+        "Created issue: " + responseData.title + " #" + responseData.number
+      );
+
+      // Store for batch processing
+      if (enableSubIssue && parentIssueId) {
+        createdIssues.push({
+          number: responseData.number,
+          title: responseData.title,
+        });
+      }
+
+      result.issuesCreated.push({
+        title: responseData.title,
+        number: responseData.number,
+        html_url: responseData.html_url,
+        isSubIssue: enableSubIssue && parentIssueId ? true : false,
+        parentIssue: enableSubIssue && parentIssueId ? parentIssueId : null,
+        rowIndex: i + 1, // Store the row index for reference
+      });
+    } catch (e) {
+      // Log error and add to results
+      Logger.log("Error creating issue: " + issueTitle + " - " + e);
+      result.errors.push("Issue '" + issueTitle + "': " + e.toString());
+    }
+  }
+
+  // Now add all issues as tasks to parent issue at once (if enabled)
+  if (enableSubIssue && parentIssueId && createdIssues.length > 0) {
+    try {
+      const batchResult = addMultipleIssuesToParent(
+        githubToken,
+        owner,
+        repo,
+        parentIssueId,
+        createdIssues
+      );
+
+      if (!batchResult.success) {
+        result.errors.push(
+          `⚠️ Issues were created but could not be added as tasks to parent issue #${parentIssueId}: ${batchResult.error}`
+        );
+      }
+    } catch (error) {
+      result.errors.push(
+        `⚠️ Issues were created but could not be added as tasks to parent issue #${parentIssueId}: ${error.toString()}`
+      );
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Create a rich text value with a clickable GitHub issue link
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - GitHub issue number
+ * @returns {RichTextValue} A rich text value with hyperlink
+ */
+function createGithubIssueLink(owner, repo, issueNumber) {
+  const issueUrl = `https://github.com/${owner}/${repo}/issues/${issueNumber}`;
+  const displayText = `#${issueNumber}`;
+
+  const builder = SpreadsheetApp.newRichTextValue()
+    .setText(displayText)
+    .setLinkUrl(0, displayText.length, issueUrl)
+    .build();
+
+  return builder;
+}
+
+/**
+ * Add multiple issues as task items in the parent issue's description
+ * This function improves performance by updating the parent issue only once
+ * @param {string} token - GitHub token
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} parentIssueNumber - Parent issue number
+ * @param {Array} childIssues - Array of child issues with {number, title} format
+ * @returns {Object} Response object with success status and message
+ */
+function addMultipleIssuesToParent(
+  token,
+  owner,
+  repo,
+  parentIssueNumber,
+  childIssues
+) {
+  try {
+    // First, get the current parent issue to retrieve its description
+    const getUrl = `https://api.github.com/repos/${owner}/${repo}/issues/${parentIssueNumber}`;
+    const getOptions = {
+      method: "get",
+      headers: {
+        Authorization: "token " + token,
+        Accept: "application/vnd.github+json",
+      },
+      muteHttpExceptions: true,
+    };
+
+    const getResponse = UrlFetchApp.fetch(getUrl, getOptions);
+    const responseCode = getResponse.getResponseCode();
+
+    if (responseCode !== 200) {
+      return {
+        success: false,
+        error: `Failed to get parent issue. Status code: ${responseCode}`,
+        responseCode: responseCode,
+      };
+    }
+
+    const parentIssue = JSON.parse(getResponse.getContentText());
+    let parentBody = parentIssue.body || "";
+
+    // If there's no Sub-tasks section, add one
+    if (!parentBody.includes("## Sub-tasks")) {
+      parentBody += "\n\n## Sub-tasks";
+    }
+
+    // Add all task entries at once
+    for (const issue of childIssues) {
+      // Format: - [ ] #123 Issue title
+      const taskEntry = `\n- [ ] #${issue.number} ${issue.title}`;
+      parentBody += taskEntry;
+    }
+
+    // Update the parent issue with the new description
+    const updateUrl = `https://api.github.com/repos/${owner}/${repo}/issues/${parentIssueNumber}`;
+    const payload = {
+      body: parentBody,
+    };
+
+    const updateOptions = {
+      method: "patch",
+      contentType: "application/json",
+      headers: {
+        Authorization: "token " + token,
+        Accept: "application/vnd.github+json",
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true,
+    };
+
+    const updateResponse = UrlFetchApp.fetch(updateUrl, updateOptions);
+    const updateResponseCode = updateResponse.getResponseCode();
+
+    if (updateResponseCode === 200) {
+      return {
+        success: true,
+        data: JSON.parse(updateResponse.getContentText()),
+        issuesAdded: childIssues.length,
+      };
+    } else {
+      return {
+        success: false,
+        error: `Failed to update parent issue. Status code: ${updateResponseCode}`,
+        responseCode: updateResponseCode,
+      };
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.toString(),
+      responseCode: 500,
+    };
+  }
+}
+
+/**
  * Process with parameters as before
  */
 function processWithParameters(e) {
@@ -108,6 +1287,18 @@ function processWithParameters(e) {
               border-radius: 5px;
               background-color: #f9f9f9;
             }
+            .btn-secondary {
+              background-color: #6c757d;
+              color: white;
+              padding: 8px 15px;
+              border: none;
+              border-radius: 4px;
+              text-decoration: none;
+              display: inline-block;
+              font-size: 14px;
+              margin-top: 15px;
+              cursor: pointer;
+            }
           </style>
         </head>
         <body>
@@ -120,7 +1311,19 @@ function processWithParameters(e) {
               <li>docsTabId: ${docsTabId || "なし"}</li>
               <li>sheetId: ${sheetId || "なし"}</li>
             </ul>
+            <button onclick="returnToMainMenu()" class="btn-secondary">メインメニューに戻る</button>
           </div>
+          <script>
+            function returnToMainMenu() {
+              google.script.run
+                .withSuccessHandler(function(html) {
+                  document.open();
+                  document.write(html);
+                  document.close();
+                })
+                .getMainMenu();
+            }
+          </script>
         </body>
       </html>
     `
@@ -169,10 +1372,17 @@ function processWithParameters(e) {
               text-decoration: none;
               border-radius: 4px;
               font-weight: bold;
+              cursor: pointer;
             }
             .btn-warning {
               background-color: #ffc107;
               color: #212529;
+            }
+            .btn-secondary {
+              background-color: #6c757d;
+              color: white;
+              border: none;
+              cursor: pointer;
             }
           </style>
         </head>
@@ -188,9 +1398,20 @@ function processWithParameters(e) {
             <div>
               <a class="btn" href="${sheetUrlPrefix}" target="_blank">Google Sheetsを表示</a>
               <a class="btn btn-warning" href="${docUrlPrefix}" target="_blank">Google Docsを表示</a>
-              <a class="btn btn-secondary" href="#" onclick="window.location.href = window.location.pathname; return false;">ホームに戻る</a>
+              <button class="btn btn-secondary" onclick="returnToMainMenu()">メインメニューに戻る</button>
             </div>
           </div>
+          <script>
+            function returnToMainMenu() {
+              google.script.run
+                .withSuccessHandler(function(html) {
+                  document.open();
+                  document.write(html);
+                  document.close();
+                })
+                .getMainMenu();
+            }
+          </script>
         </body>
       </html>
     `);
@@ -252,6 +1473,8 @@ function processWithParameters(e) {
               .btn-secondary {
                 background-color: #6c757d;
                 color: white;
+                border: none;
+                cursor: pointer;
               }
             </style>
           </head>
@@ -267,9 +1490,20 @@ function processWithParameters(e) {
               <div>
                 <a class="btn" href="${sheetUrlPrefix}" target="_blank">Google Sheetsを表示</a>
                 <a class="btn btn-warning" href="${docUrlPrefix}" target="_blank">Google Docsを表示</a>
-                <a class="btn btn-secondary" href="#" onclick="window.location.href = window.location.pathname; return false;">ホームに戻る</a>
+                <button class="btn btn-secondary" onclick="returnToMainMenu()">メインメニューに戻る</button>
               </div>
             </div>
+            <script>
+              function returnToMainMenu() {
+                google.script.run
+                  .withSuccessHandler(function(html) {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                  })
+                  .getMainMenu();
+              }
+            </script>
           </body>
         </html>
       `);
@@ -401,6 +1635,18 @@ function createFormHtml() {
             margin-right: 8px;
             vertical-align: middle;
           }
+          .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 20px;
+            cursor: pointer;
+          }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
@@ -408,6 +1654,7 @@ function createFormHtml() {
       </head>
       <body>
         <div class="container">
+          <button onclick="returnToMainMenu()" class="btn-back">← メインメニューに戻る</button>
           <h1>Google Docs から Google Sheets へのデータ抽出</h1>
           
           <div class="instructions">
@@ -450,6 +1697,16 @@ function createFormHtml() {
         </div>
         
         <script>
+          function returnToMainMenu() {
+            google.script.run
+              .withSuccessHandler(function(html) {
+                document.open();
+                document.write(html);
+                document.close();
+              })
+              .getMainMenu();
+          }
+          
           function handleSubmit(event) {
             event.preventDefault();
             const form = document.getElementById('extractionForm');
@@ -499,7 +1756,6 @@ function createFormHtml() {
                 document.getElementById('statusText').innerText = 'エラーが発生しました';
                 
                 // Restore submit button and display error
-                // Reset button text in Japanese after failure
                 submitButton.innerHTML = '抽出を実行';
                 submitButton.disabled = false;
                 alert('エラーが発生しました: ' + error);
@@ -557,12 +1813,37 @@ function processForm(formObject) {
       },
     };
 
-    // Use parameter processing function and convert to HTML string to return
+    // Use parameter processing function
     const htmlOutput = processWithParameters(e);
 
     // For Google Apps Script client-side, need to return HTML as string
     // instead of HtmlOutput object
-    return htmlOutput.getContent();
+    const htmlContent = htmlOutput.getContent();
+
+    // Replace the return home button with the correct script call
+    const updatedHtml = htmlContent.replace(
+      /<a class="btn btn-secondary" href="\?" onclick="window\.location\.href = window\.location\.pathname; return false;">メインメニューに戻る<\/a>/g,
+      '<button class="btn btn-secondary" onclick="returnToMainMenu()">メインメニューに戻る</button>'
+    );
+
+    // Add the returnToMainMenu function
+    const finalHtml = updatedHtml.replace(
+      "</body>",
+      `<script>
+        function returnToMainMenu() {
+          google.script.run
+            .withSuccessHandler(function(html) {
+              document.open();
+              document.write(html);
+              document.close();
+            })
+            .getMainMenu();
+        }
+      </script>
+      </body>`
+    );
+
+    return finalHtml;
   } catch (error) {
     Logger.log("Form processing error: " + error);
 
@@ -599,6 +1880,8 @@ function processForm(formObject) {
               text-decoration: none;
               border-radius: 4px;
               font-weight: bold;
+              cursor: pointer;
+              border: none;
             }
             .btn-secondary {
               background-color: #6c757d;
@@ -615,9 +1898,20 @@ function processForm(formObject) {
               <code>${error.toString()}</code>
             </div>
             <p>
-              <a class="btn btn-secondary" href="#" onclick="window.location.href = window.location.pathname; return false;">ホームに戻る</a>
+              <button class="btn btn-secondary" onclick="returnToMainMenu()">メインメニューに戻る</button>
             </p>
           </div>
+          <script>
+            function returnToMainMenu() {
+              google.script.run
+                .withSuccessHandler(function(html) {
+                  document.open();
+                  document.write(html);
+                  document.close();
+                })
+                .getMainMenu();
+            }
+          </script>
         </body>
       </html>
     `;
@@ -816,7 +2110,6 @@ function createCheckboxToColumnE() {
 }
 
 function applyColorRulesToColumnE(sheet) {
-
   // Rule 1: If value is "未着手" (Not Started) then fill with light gray
   const rule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo("未着手")
@@ -875,7 +2168,6 @@ function createCheckboxToColumnH() {
 }
 
 function applyColorRulesToColumnH(sheet) {
-
   // Rule 1: If value is "選択" (Select) then fill with light gray
   const rule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo("選択")
@@ -983,4 +2275,98 @@ function createRichTextValue(url) {
     .build();
 
   return builder;
+}
+
+/**
+ * Get template from repo
+ */
+function getTemplateFromRepo(token, owner, repo, path) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  const options = {
+    method: "get",
+    headers: {
+      Authorization: "token " + token,
+      Accept: "application/vnd.github+json",
+    },
+  };
+  const response = UrlFetchApp.fetch(url, options);
+  const content = JSON.parse(response.getContentText());
+  return Utilities.newBlob(
+    Utilities.base64Decode(content.content)
+  ).getDataAsString();
+}
+
+/**
+ * Insert link into section
+ */
+function insertLinkIntoSection(body, section, link) {
+  // Split body into lines
+  const lines = body.split("\n");
+  // Find line containing section (e.g., ## リンク)
+  const index = lines.findIndex((line) => line.trim() === section);
+  if (index !== -1) {
+    // Insert link after the section line
+    lines.splice(index + 1, 0, link);
+  }
+  return lines.join("\n");
+}
+
+/**
+ * Strip front matter
+ */
+function stripFrontMatter(content) {
+  // Remove YAML frontmatter (part between first two ---)
+  const parts = content.split("---");
+  if (parts.length >= 3) {
+    // parts[0]: '' (before first ---), parts[1]: YAML, parts[2]: markdown part after
+    return parts.slice(2).join("---").trim();
+  }
+  return content.trim();
+}
+
+/**
+ * Create issue with template
+ */
+function createIssueWithTemplate(token, owner, repo, title, body) {
+  const payload = {
+    title,
+    body,
+  };
+  const options = {
+    method: "post",
+    contentType: "application/json",
+    headers: {
+      Authorization: "token " + token,
+      Accept: "application/vnd.github+json",
+    },
+    payload: JSON.stringify(payload),
+  };
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues`;
+
+  const response = UrlFetchApp.fetch(url, options);
+  return response;
+}
+
+/**
+ * Get Docs form HTML content for client-side navigation
+ */
+function getDocsForm() {
+  const html = createFormHtml().getContent();
+  return html;
+}
+
+/**
+ * Get GitHub form HTML content for client-side navigation
+ */
+function getGithubForm() {
+  const html = createGithubFormHtml().getContent();
+  return html;
+}
+
+/**
+ * Get main menu HTML content for client-side navigation
+ */
+function getMainMenu() {
+  const html = createMainMenuHtml().getContent();
+  return html;
 }
