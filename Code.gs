@@ -816,7 +816,6 @@ function createCheckboxToColumnE() {
 }
 
 function applyColorRulesToColumnE(sheet) {
-
   // Rule 1: If value is "未着手" (Not Started) then fill with light gray
   const rule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo("未着手")
@@ -875,7 +874,6 @@ function createCheckboxToColumnH() {
 }
 
 function applyColorRulesToColumnH(sheet) {
-
   // Rule 1: If value is "選択" (Select) then fill with light gray
   const rule1 = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo("選択")
@@ -974,7 +972,14 @@ function getPrefixTitleTask(input) {
  */
 function createRichTextValue(url) {
   const prefix = "- 修正方針リンク: ";
-  const fullText = prefix + url;
+
+  // Extract the heading ID from the URL
+  let displayText = url;
+  if (url.includes("#heading=")) {
+    displayText = url.split("#heading=")[1];
+  }
+
+  const fullText = prefix + displayText;
 
   const builder = SpreadsheetApp.newRichTextValue()
     .setText(fullText)
