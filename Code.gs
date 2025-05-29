@@ -858,8 +858,9 @@ function applyColorRulesToColumnE(sheet) {
     .setRanges([sheet.getRange("E2:E")])
     .build();
 
-  // Replace existing conditional formatting rules for column E
-  const newRules = [rule1, rule2, rule3, rule4, rule5, rule6];
+  // Get existing rules and add new rules for column E
+  const existingRules = sheet.getConditionalFormatRules();
+  const newRules = [rule1, rule2, rule3, rule4, rule5, rule6, ...existingRules];
   sheet.setConditionalFormatRules(newRules);
 }
 
@@ -909,8 +910,9 @@ function applyColorRulesToColumnH(sheet) {
     .setRanges([sheet.getRange("H2:H")])
     .build();
 
-  // Replace existing conditional formatting rules for column H
-  const newRules = [rule1, rule2, rule3, rule4, rule5];
+  // Get existing rules and add new rules for column H
+  const existingRules = sheet.getConditionalFormatRules();
+  const newRules = [...existingRules, rule1, rule2, rule3, rule4, rule5];
   sheet.setConditionalFormatRules(newRules);
 }
 
