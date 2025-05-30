@@ -229,7 +229,7 @@ function createMainMenuHtml() {
           </div>
           
           <div class="footer">
-            <p>© 2023 Michibiku Project - App Script Tool</p>
+            <p>© 2025 Michibiku Project - App Script Tool</p>
           </div>
         </div>
         
