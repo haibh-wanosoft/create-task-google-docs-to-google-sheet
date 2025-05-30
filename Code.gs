@@ -544,6 +544,22 @@ function createGithubFormHtml() {
         </div>
         
         <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            // Immediately set up the sub-issue options visibility based on checkbox
+            const enableSubIssueCheckbox = document.getElementById('enableSubIssue');
+            const subIssueOptions = document.querySelector('.sub-issue-options');
+            
+            if (enableSubIssueCheckbox && subIssueOptions) {
+              // Initial state
+              subIssueOptions.style.display = enableSubIssueCheckbox.checked ? 'block' : 'none';
+              
+              // Add event listener for changes
+              enableSubIssueCheckbox.addEventListener('change', function() {
+                subIssueOptions.style.display = this.checked ? 'block' : 'none';
+              });
+            }
+          });
+          
           function returnToMainMenu() {
             google.script.run
               .withSuccessHandler(function(html) {
@@ -718,15 +734,6 @@ function createGithubFormHtml() {
             
             return false;
           }
-
-          document.getElementById('enableSubIssue').addEventListener('change', function() {
-            const subIssueOptions = document.querySelector('.sub-issue-options');
-            if (this.checked) {
-              subIssueOptions.style.display = 'block';
-            } else {
-              subIssueOptions.style.display = 'none';
-            }
-          });
         </script>
       </body>
     </html>
