@@ -3213,6 +3213,101 @@ function createProjectFormHtml() {
             text-align: center;
             padding: 10px;
           }
+          .load-labels-btn {
+            background-color: #0366d6;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .load-labels-btn:hover {
+            background-color: #0256c7;
+          }
+          .labels-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+          }
+          .labels-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+          }
+          .label-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+          }
+          .label-checkbox {
+            margin-right: 8px;
+          }
+          .label-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+          }
+          .labels-loading {
+            text-align: center;
+            padding: 10px;
+          }
+          .load-milestones-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .load-milestones-btn:hover {
+            background-color: #218838;
+          }
+          .milestones-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+          }
+          .milestones-list {
+            max-height: 200px;
+            overflow-y: auto;
+          }
+          .milestone-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+          }
+          .milestone-radio {
+            margin-right: 8px;
+          }
+          .milestone-name {
+            font-weight: 500;
+          }
+          .milestone-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            background-color: #28a745;
+            color: white;
+            margin-left: 8px;
+          }
+          .milestones-loading {
+            text-align: center;
+            padding: 10px;
+          }
           .instructions {
             background-color: #e8f0fe;
             padding: 15px;
@@ -3318,6 +3413,114 @@ function createProjectFormHtml() {
             text-align: center;
             padding: 10px;
           }
+          .load-milestones-btn {
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .load-milestones-btn:hover {
+            background-color: #218838;
+          }
+          .milestones-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+          }
+          .milestones-list {
+            max-height: 200px;
+            overflow-y: auto;
+          }
+          .milestone-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+          }
+          .milestone-radio {
+            margin-right: 8px;
+          }
+          .milestone-name {
+            font-weight: 500;
+          }
+          .milestone-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            background-color: #28a745;
+            color: white;
+            margin-left: 8px;
+          }
+          .milestones-loading {
+            text-align: center;
+            padding: 10px;
+          }
+          .instructions {
+            background-color: #e8f0fe;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+          }
+          .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+          }
+          .status-message {
+            display: none;
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+          }
+          .status-message.processing {
+            display: block;
+            background-color: #e8f0fe;
+            color: #174ea6;
+          }
+          .status-message.error {
+            display: block;
+            background-color: #fce8e6;
+            color: #c5221f;
+            border: 1px solid #fad2cf;
+          }
+          .status-message.success {
+            display: block;
+            background-color: #e6f4ea;
+            color: #137333;
+            border: 1px solid #ceead6;
+          }
+          .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #4285f4;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+          }
+          .btn-back {
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin-bottom: 20px;
+            cursor: pointer;
+          }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
@@ -3393,6 +3596,21 @@ function createProjectFormHtml() {
               <div id="labelsError" class="error-message" style="display:none; color: red; margin-top: 5px;"></div>
             </div>
             
+            <div class="form-group">
+              <label>マイルストーン:</label>
+              <button type="button" onclick="loadMilestones()" class="load-milestones-btn">マイルストーンを読み込む</button>
+              <div id="milestonesContainer" class="milestones-container" style="display:none;">
+                <div class="hint" style="margin-bottom: 10px;">作成するすべてのIssueに適用するマイルストーンを選択してください：</div>
+                <div id="milestonesList" class="milestones-list"></div>
+              </div>
+              <div id="milestonesLoading" class="milestones-loading" style="display:none;">
+                <div class="spinner"></div>
+                <span>マイルストーンを読み込み中...</span>
+              </div>
+              <div id="milestonesError" class="error-message" style="display:none; color: red; margin-top: 5px;"></div>
+              <input type="hidden" id="milestoneNumber" name="milestoneNumber">
+            </div>
+            
             <div id="statusMessage" class="status-message">
               <div class="spinner"></div>
               <span id="statusText">処理中...</span>
@@ -3419,6 +3637,7 @@ function createProjectFormHtml() {
           
           let loadedProjects = [];
           let loadedLabels = [];
+          let loadedMilestones = [];
           
           function loadProjects() {
             const githubToken = document.getElementById('githubToken').value.trim();
@@ -3482,6 +3701,37 @@ function createProjectFormHtml() {
               .getRepoLabels(githubToken, owner, repo);
           }
           
+          function loadMilestones() {
+            const githubToken = document.getElementById('githubToken').value.trim();
+            const owner = document.getElementById('owner').value.trim();
+            const repo = document.getElementById('repo').value.trim();
+            
+            if (!githubToken || !owner || !repo) {
+              alert('GitHubトークン、リポジトリ所有者、リポジトリ名を入力してからマイルストーンを読み込んでください。');
+              return;
+            }
+            
+            // Show loading
+            document.getElementById('milestonesLoading').style.display = 'block';
+            document.getElementById('milestonesContainer').style.display = 'none';
+            document.getElementById('milestonesError').style.display = 'none';
+            
+            // Call server function to get milestones
+            google.script.run
+              .withSuccessHandler(function(milestones) {
+                loadedMilestones = milestones;
+                displayMilestones(milestones);
+                document.getElementById('milestonesLoading').style.display = 'none';
+                document.getElementById('milestonesContainer').style.display = 'block';
+              })
+              .withFailureHandler(function(error) {
+                document.getElementById('milestonesLoading').style.display = 'none';
+                document.getElementById('milestonesError').style.display = 'block';
+                document.getElementById('milestonesError').textContent = 'マイルストーンの読み込みに失敗しました: ' + error;
+              })
+              .getRepoMilestones(githubToken, owner, repo);
+          }
+          
           function displayLabels(labels) {
             const labelsList = document.getElementById('labelsList');
             labelsList.innerHTML = '';
@@ -3520,6 +3770,70 @@ function createProjectFormHtml() {
             });
           }
           
+          function displayMilestones(milestones) {
+            const milestonesList = document.getElementById('milestonesList');
+            milestonesList.innerHTML = '';
+            
+            if (milestones.length === 0) {
+              milestonesList.innerHTML = '<p style="color: #666;">マイルストーンが見つかりませんでした。</p>';
+              return;
+            }
+            
+            milestones.forEach((milestone) => {
+              const milestoneItem = document.createElement('div');
+              milestoneItem.className = 'milestone-item';
+              
+              const radio = document.createElement('input');
+              radio.type = 'radio';
+              radio.id = 'milestone_' + milestone.number;
+              radio.name = 'milestone';
+              radio.value = milestone.number;
+              radio.className = 'milestone-radio';
+              radio.onclick = function() {
+                document.getElementById('milestoneNumber').value = milestone.number;
+              };
+              
+              const nameLabel = document.createElement('label');
+              nameLabel.htmlFor = 'milestone_' + milestone.number;
+              nameLabel.className = 'milestone-name';
+              nameLabel.textContent = milestone.title;
+              
+              const stateBadge = document.createElement('span');
+              stateBadge.className = 'milestone-badge';
+              stateBadge.textContent = milestone.state === 'open' ? 'オープン' : 'クローズド';
+              
+              milestoneItem.appendChild(radio);
+              milestoneItem.appendChild(nameLabel);
+              milestoneItem.appendChild(stateBadge);
+              
+              // Add due date if available
+              if (milestone.due_on) {
+                const dueDate = new Date(milestone.due_on);
+                const dueDateStr = dueDate.toLocaleDateString('ja-JP');
+                
+                const dueInfo = document.createElement('div');
+                dueInfo.className = 'hint';
+                dueInfo.style.marginTop = '5px';
+                dueInfo.style.marginLeft = '22px';
+                dueInfo.textContent = '期限: ' + dueDateStr;
+                milestoneItem.appendChild(dueInfo);
+              }
+              
+              // Add description if available
+              if (milestone.description) {
+                const description = document.createElement('div');
+                description.className = 'hint';
+                description.style.marginTop = '5px';
+                description.style.marginLeft = '22px';
+                description.textContent = milestone.description.length > 100 ? 
+                  milestone.description.substring(0, 100) + '...' : milestone.description;
+                milestoneItem.appendChild(description);
+              }
+              
+              milestonesList.appendChild(milestoneItem);
+            });
+          }
+          
           function getContrastColor(hexColor) {
             // Convert hex to RGB
             const r = parseInt(hexColor.substr(0, 2), 16);
@@ -3536,6 +3850,11 @@ function createProjectFormHtml() {
           function getSelectedLabels() {
             const checkboxes = document.querySelectorAll('input[name="labels"]:checked');
             return Array.from(checkboxes).map(cb => cb.value);
+          }
+          
+          function getSelectedMilestone() {
+            const radio = document.querySelector('input[name="milestone"]:checked');
+            return radio ? Number(radio.value) : null;
           }
           
           function displayProjects(projects) {
@@ -3598,6 +3917,7 @@ function createProjectFormHtml() {
             const repo = form.repo.value.trim();
             const projectNodeId = form.projectNodeId.value.trim();
             const selectedLabels = getSelectedLabels();
+            const milestoneNumber = getSelectedMilestone();
             
             // Validate form inputs
             if (!spreadsheetId || !sheetName || !githubToken || !owner || !repo) {
@@ -3654,7 +3974,8 @@ function createProjectFormHtml() {
                 owner: owner,
                 repo: repo,
                 projectNodeId: projectNodeId,
-                labels: selectedLabels
+                labels: selectedLabels,
+                milestone: milestoneNumber
               });
             
             return false;
@@ -3685,6 +4006,7 @@ function processProjectForm(formObject) {
     const repo = formObject.repo;
     const projectNodeId = formObject.projectNodeId;
     const labels = formObject.labels || [];
+    const milestone = formObject.milestone || null;
 
     // Process tasks and add to project
     const result = processTasksAndAddToProject(
@@ -3694,7 +4016,8 @@ function processProjectForm(formObject) {
       owner,
       repo,
       projectNodeId,
-      labels
+      labels,
+      milestone
     );
 
     // Create HTML result to display
@@ -3792,6 +4115,16 @@ function processProjectForm(formObject) {
               margin-right: 5px;
               color: white;
             }
+            .milestone-badge {
+              display: inline-block;
+              font-size: 11px;
+              padding: 2px 6px;
+              border-radius: 10px;
+              background-color: #28a745;
+              color: white;
+              margin-left: 5px;
+              vertical-align: middle;
+            }
             .error-section {
               background-color: #f8d7da;
               border: 1px solid #f5c6cb;
@@ -3858,6 +4191,13 @@ function processProjectForm(formObject) {
                 ? `<p>適用されたラベル: ${labels.join(", ")}</p>`
                 : ""
             }
+            ${
+              milestone
+                ? `<p>適用されたマイルストーン: ${
+                    result.milestoneName || "#" + milestone
+                  }</p>`
+                : ""
+            }
             
             <div class="stats">
               <div class="stat-item created">
@@ -3891,6 +4231,11 @@ function processProjectForm(formObject) {
                         issue.title
                       }</a>
                     <span class="project-badge">Projectに追加済み</span>
+                    ${
+                      issue.milestone
+                        ? `<span class="milestone-badge">マイルストーン: ${issue.milestone.title}</span>`
+                        : ""
+                    }
                     ${
                       issue.labels && issue.labels.length > 0
                         ? issue.labels
@@ -4042,6 +4387,7 @@ function processProjectForm(formObject) {
  * @param {string} repo - Repository name
  * @param {string} projectNodeId - Project node ID
  * @param {Array} labels - Array of label names to apply to all issues
+ * @param {number} milestone - Milestone number to apply to all issues
  * @returns {Object} Result with issues created, skipped, and errors
  */
 function processTasksAndAddToProject(
@@ -4051,7 +4397,8 @@ function processTasksAndAddToProject(
   owner,
   repo,
   projectNodeId,
-  labels = []
+  labels = [],
+  milestone = null
 ) {
   // Get sheet from id
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
@@ -4075,7 +4422,26 @@ function processTasksAndAddToProject(
     issuesCreated: [],
     errors: [],
     skipped: 0,
+    milestoneName: null,
   };
+
+  // Get milestone name if milestone is provided
+  if (milestone) {
+    try {
+      const milestoneDetails = getMilestoneDetails(
+        githubToken,
+        owner,
+        repo,
+        milestone
+      );
+      if (milestoneDetails) {
+        result.milestoneName = milestoneDetails.title;
+      }
+    } catch (e) {
+      Logger.log("Error getting milestone details: " + e);
+      // Don't let this stop the process, just continue
+    }
+  }
 
   // Log header information for debugging
   Logger.log(
@@ -4128,14 +4494,15 @@ function processTasksAndAddToProject(
 
       Logger.log(`Creating issue for row ${i + 1}: "${issueTitle}"`);
 
-      // Create issue and add to project - now with labels
-      const issueNodeId = createIssueWithLabels(
+      // Create issue and add to project - now with labels and milestone
+      const issueNodeId = createIssueWithLabelsAndMilestone(
         owner,
         repo,
         issueTitle,
         issueBody,
         githubToken,
-        labels
+        labels,
+        milestone
       );
 
       // Add to project
@@ -4162,6 +4529,7 @@ function processTasksAndAddToProject(
           number: issueDetails.number,
           html_url: issueDetails.html_url,
           labels: issueDetails.labels || [], // Include the labels
+          milestone: issueDetails.milestone || null, // Include the milestone
           rowIndex: i + 1,
         });
 
@@ -4225,16 +4593,67 @@ function getProjectForm() {
 }
 
 /**
- * create issue with labels
+ * Get repository milestones from GitHub
+ * @param {string} token - GitHub token
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @returns {Array} Array of milestone objects with number, title, state, etc.
+ */
+function getRepoMilestones(token, owner, repo) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/milestones?state=all`;
+  const options = {
+    method: "get",
+    headers: {
+      Authorization: "token " + token,
+      Accept: "application/vnd.github+json",
+    },
+    muteHttpExceptions: true,
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log(`Failed to get milestones: ${responseCode}`);
+      return [];
+    }
+
+    const milestones = JSON.parse(response.getContentText());
+    return milestones.map((milestone) => ({
+      number: milestone.number,
+      title: milestone.title,
+      description: milestone.description || "",
+      state: milestone.state,
+      due_on: milestone.due_on,
+      html_url: milestone.html_url,
+    }));
+  } catch (error) {
+    Logger.log(`Error getting milestones: ${error}`);
+    return [];
+  }
+}
+
+/**
+ * create issue with labels and milestone
  * @param {string} owner - Repository owner
  * @param {string} repo - Repository name
  * @param {string} title - Issue title
  * @param {string} body - Issue body
  * @param {string} token - GitHub token
  * @param {Array} labels - Array of label names to apply to the issue
+ * @param {number} milestone - Milestone number to apply to the issue
  * @returns {string} Issue node_id
  */
-function createIssueWithLabels(owner, repo, title, body, token, labels = []) {
+function createIssueWithLabelsAndMilestone(
+  owner,
+  repo,
+  title,
+  body,
+  token,
+  labels = [],
+  milestone = null
+) {
   const url = `https://api.github.com/repos/${owner}/${repo}/issues`;
   const payload = {
     title: title,
@@ -4244,6 +4663,11 @@ function createIssueWithLabels(owner, repo, title, body, token, labels = []) {
   // Add labels if provided
   if (labels && labels.length > 0) {
     payload.labels = labels;
+  }
+
+  // Add milestone if provided
+  if (milestone) {
+    payload.milestone = milestone;
   }
 
   const options = {
@@ -4266,7 +4690,44 @@ function createIssueWithLabels(owner, repo, title, body, token, labels = []) {
       ", node_id: " +
       issue.node_id +
       ", labels: " +
-      JSON.stringify(issue.labels)
+      JSON.stringify(issue.labels) +
+      ", milestone: " +
+      (issue.milestone ? issue.milestone.title : "none")
   );
   return issue.node_id;
+}
+
+/**
+ * Get milestone details by number
+ * @param {string} token - GitHub token
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} milestoneNumber - Milestone number
+ * @returns {Object|null} Milestone details or null if not found
+ */
+function getMilestoneDetails(token, owner, repo, milestoneNumber) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/milestones/${milestoneNumber}`;
+  const options = {
+    method: "get",
+    headers: {
+      Authorization: "token " + token,
+      Accept: "application/vnd.github+json",
+    },
+    muteHttpExceptions: true,
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log(`Failed to get milestone details: ${responseCode}`);
+      return null;
+    }
+
+    return JSON.parse(response.getContentText());
+  } catch (error) {
+    Logger.log(`Error getting milestone details: ${error}`);
+    return null;
+  }
 }
