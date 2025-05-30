@@ -448,6 +448,56 @@ function createGithubFormHtml() {
             text-align: center;
             padding: 10px;
           }
+          .load-projects-btn {
+            background-color: #6f42c1;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 8px;
+          }
+          .load-projects-btn:hover {
+            background-color: #5a32a3;
+          }
+          .projects-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+          }
+          .projects-list {
+            max-height: 200px;
+            overflow-y: auto;
+          }
+          .project-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+          }
+          .project-radio {
+            margin-right: 8px;
+          }
+          .project-name {
+            font-weight: 500;
+          }
+          .project-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            background-color: #6f42c1;
+            color: white;
+            margin-left: 8px;
+          }
+          .projects-loading {
+            text-align: center;
+            padding: 10px;
+          }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
@@ -513,6 +563,20 @@ function createGithubFormHtml() {
               </div>
               <div id="labelsError" class="error-message" style="display:none; color: red; margin-top: 5px;"></div>
             </div>
+
+            <div class="form-group">
+              <label>プロジェクト (Kanban):</label>
+              <button type="button" onclick="loadProjects()" class="load-projects-btn">プロジェクトを読み込む</button>
+              <div id="projectsContainer" class="projects-container" style="display:none;">
+                <div class="hint" style="margin-bottom: 10px;">作成するIssueを追加するプロジェクトを選択してください：</div>
+                <div id="projectsList" class="projects-list"></div>
+              </div>
+              <div id="projectsLoading" class="projects-loading" style="display:none;">
+                <div class="spinner"></div>
+                <span>プロジェクトを読み込み中...</span>
+              </div>
+              <div id="projectsError" class="error-message" style="display:none; color: red; margin-top: 5px;"></div>
+            </div>
             
             <div class="form-group">
               <label for="enableSubIssue">Sub Issueを有効にする:</label>
@@ -571,6 +635,7 @@ function createGithubFormHtml() {
           }
           
           let loadedLabels = [];
+          let loadedProjects = [];
           
           function loadLabels() {
             const githubToken = document.getElementById('githubToken').value.trim();
@@ -659,6 +724,89 @@ function createGithubFormHtml() {
             return Array.from(checkboxes).map(cb => cb.value);
           }
           
+          function loadProjects() {
+            const githubToken = document.getElementById('githubToken').value.trim();
+            const owner = document.getElementById('owner').value.trim();
+            const repo = document.getElementById('repo').value.trim();
+            
+            if (!githubToken || !owner || !repo) {
+              alert('GitHubトークン、リポジトリ所有者、リポジトリ名を入力してからプロジェクトを読み込んでください。');
+              return;
+            }
+            
+            // Show loading
+            document.getElementById('projectsLoading').style.display = 'block';
+            document.getElementById('projectsContainer').style.display = 'none';
+            document.getElementById('projectsError').style.display = 'none';
+            
+            // Call server function to get projects
+            google.script.run
+              .withSuccessHandler(function(projects) {
+                loadedProjects = projects;
+                displayProjects(projects);
+                document.getElementById('projectsLoading').style.display = 'none';
+                document.getElementById('projectsContainer').style.display = 'block';
+              })
+              .withFailureHandler(function(error) {
+                document.getElementById('projectsLoading').style.display = 'none';
+                document.getElementById('projectsError').style.display = 'block';
+                document.getElementById('projectsError').textContent = 'プロジェクトの読み込みに失敗しました: ' + error;
+              })
+              .getRepoProjects(githubToken, owner, repo);
+          }
+          
+          function displayProjects(projects) {
+            const projectsList = document.getElementById('projectsList');
+            projectsList.innerHTML = '';
+            
+            if (projects.length === 0) {
+              projectsList.innerHTML = '<p style="color: #666;">プロジェクトが見つかりませんでした。</p>';
+              return;
+            }
+            
+            projects.forEach((project, index) => {
+              const projectItem = document.createElement('div');
+              projectItem.className = 'project-item';
+              
+              const radio = document.createElement('input');
+              radio.type = 'radio';
+              radio.id = 'project_' + project.id;
+              radio.name = 'project';
+              radio.value = project.id;
+              radio.className = 'project-radio';
+              
+              const nameLabel = document.createElement('label');
+              nameLabel.htmlFor = 'project_' + project.id;
+              nameLabel.className = 'project-name';
+              nameLabel.textContent = project.name;
+              
+              const stateBadge = document.createElement('span');
+              stateBadge.className = 'project-badge';
+              stateBadge.textContent = project.state === 'open' ? 'オープン' : 'クローズド';
+              
+              projectItem.appendChild(radio);
+              projectItem.appendChild(nameLabel);
+              projectItem.appendChild(stateBadge);
+              
+              if (project.body) {
+                const description = document.createElement('div');
+                description.className = 'hint';
+                description.style.marginTop = '5px';
+                description.style.marginLeft = '22px';
+                description.textContent = project.body.length > 100 ? 
+                  project.body.substring(0, 100) + '...' : project.body;
+                projectItem.appendChild(description);
+              }
+              
+              projectsList.appendChild(projectItem);
+            });
+          }
+          
+          function getSelectedProject() {
+            const radio = document.querySelector('input[name="project"]:checked');
+            return radio ? radio.value : null;
+          }
+          
           function handleSubmit(event) {
             event.preventDefault();
             const form = document.getElementById('githubForm');
@@ -671,6 +819,7 @@ function createGithubFormHtml() {
             const enableSubIssue = form.enableSubIssue.checked;
             const parentIssueId = enableSubIssue ? form.parentIssueId.value.trim() : '';
             const selectedLabels = getSelectedLabels();
+            const selectedProject = getSelectedProject();
             
             // Validate form inputs
             if (!spreadsheetId || !sheetName || !githubToken || !owner || !repo || !templatePath) {
@@ -729,7 +878,8 @@ function createGithubFormHtml() {
                 templatePath: templatePath,
                 enableSubIssue: enableSubIssue,
                 parentIssueId: parentIssueId,
-                labels: selectedLabels
+                labels: selectedLabels,
+                projectId: selectedProject
               });
             
             return false;
@@ -764,6 +914,7 @@ function processGithubForm(formObject) {
       ? Number(formObject.parentIssueId)
       : null;
     const labels = formObject.labels || [];
+    const projectId = formObject.projectId || null;
 
     // Call function to create GitHub issues
     const result = createGithubIssuesFromSheet(
@@ -775,7 +926,8 @@ function processGithubForm(formObject) {
       templatePath,
       enableSubIssue,
       parentIssueId,
-      labels
+      labels,
+      projectId
     );
 
     // Check if there are task-relation errors
@@ -1144,6 +1296,7 @@ function processGithubForm(formObject) {
  * @param {boolean} enableSubIssue - Whether to create sub-issues
  * @param {number} parentIssueId - Parent issue ID
  * @param {Array} labels - Array of label names to apply to all issues
+ * @param {string} projectId - Project ID to add issues to
  */
 function createGithubIssuesFromSheet(
   spreadsheetId,
@@ -1154,7 +1307,8 @@ function createGithubIssuesFromSheet(
   templatePath,
   enableSubIssue = false,
   parentIssueId = 1,
-  labels = []
+  labels = [],
+  projectId = null
 ) {
   // Get sheet from id
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
@@ -1264,6 +1418,29 @@ function createGithubIssuesFromSheet(
         parentIssue: enableSubIssue && parentIssueId ? parentIssueId : null,
         rowIndex: i + 1, // Store the row index for reference
       });
+
+      // Add issue to project if projectId is provided
+      if (projectId) {
+        try {
+          const addToProjectResult = addIssueToProject(
+            githubToken,
+            projectId,
+            responseData.node_id
+          );
+
+          if (!addToProjectResult.success) {
+            result.errors.push(
+              `Issue #${responseData.number} was created but could not be added to the project: ${addToProjectResult.error}`
+            );
+          }
+        } catch (projectError) {
+          result.errors.push(
+            `Issue #${
+              responseData.number
+            } was created but could not be added to the project: ${projectError.toString()}`
+          );
+        }
+      }
     } catch (e) {
       // Log error and add to results
       Logger.log("Error creating issue: " + issueTitle + " - " + e);
@@ -1295,6 +1472,61 @@ function createGithubIssuesFromSheet(
   }
 
   return result;
+}
+
+/**
+ * Add an issue to a GitHub project
+ * @param {string} token - GitHub token
+ * @param {string} projectId - Project ID
+ * @param {string} issueId - Issue ID (node ID, not issue number)
+ * @returns {Object} Response data
+ */
+function addIssueToProject(token, projectId, issueId) {
+  // Project API requires the node ID of the issue, which differs from the issue number
+  // First, get the node ID for the issue
+  const nodeIdUrl = `https://api.github.com/graphql`;
+  const nodeIdOptions = {
+    method: "post",
+    contentType: "application/json",
+    headers: {
+      Authorization: "bearer " + token,
+    },
+    payload: JSON.stringify({
+      query: `mutation {
+        addProjectV2ItemById(input: {projectId: "${projectId}" contentId: "${issueId}"}) {
+          item {
+            id
+          }
+        }
+      }`,
+    }),
+    muteHttpExceptions: true,
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(nodeIdUrl, nodeIdOptions);
+    const responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log(
+        `Failed to add issue to project. Status code: ${responseCode}`
+      );
+      return { success: false, error: `API error: ${responseCode}` };
+    }
+
+    const responseData = JSON.parse(response.getContentText());
+    if (responseData.errors) {
+      return {
+        success: false,
+        error: responseData.errors[0].message || "Unknown GraphQL error",
+      };
+    }
+
+    return { success: true, data: responseData };
+  } catch (error) {
+    Logger.log(`Error adding issue to project: ${error}`);
+    return { success: false, error: error.toString() };
+  }
 }
 
 /**
@@ -2578,5 +2810,177 @@ function getRepoLabels(token, owner, repo) {
   } catch (error) {
     Logger.log(`Error getting labels: ${error}`);
     return [];
+  }
+}
+
+/**
+ * Get repository projects (Kanban boards) from GitHub using GraphQL API
+ * @param {string} token - GitHub token
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @returns {Array} Array of project objects with id, name, and other details
+ */
+function getRepoProjects(token, owner, repo) {
+  // For Projects V2, we need to use GraphQL API
+  const url = `https://api.github.com/graphql`;
+  const query = `
+    query {
+      repository(owner: "${owner}", name: "${repo}") {
+        projectsV2(first: 20) {
+          nodes {
+            id
+            title
+            number
+            closed
+            url
+            shortDescription
+          }
+        }
+      }
+      organization(login: "${owner}") {
+        projectsV2(first: 20) {
+          nodes {
+            id
+            title
+            number
+            closed
+            url
+            shortDescription
+          }
+        }
+      }
+    }
+  `;
+
+  const options = {
+    method: "post",
+    contentType: "application/json",
+    headers: {
+      Authorization: "bearer " + token,
+    },
+    payload: JSON.stringify({ query }),
+    muteHttpExceptions: true,
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log(`Failed to get projects: ${responseCode}`);
+      return [];
+    }
+
+    const result = JSON.parse(response.getContentText());
+
+    if (result.errors) {
+      Logger.log(`GraphQL errors: ${JSON.stringify(result.errors)}`);
+      return [];
+    }
+
+    let projects = [];
+
+    // Add repository projects
+    if (
+      result.data &&
+      result.data.repository &&
+      result.data.repository.projectsV2
+    ) {
+      const repoProjects = result.data.repository.projectsV2.nodes || [];
+      projects = projects.concat(
+        repoProjects.map((p) => ({
+          id: p.id,
+          name: p.title,
+          body: p.shortDescription || "",
+          number: p.number,
+          html_url: p.url,
+          state: p.closed ? "closed" : "open",
+          source: "repository",
+        }))
+      );
+    }
+
+    // Add organization projects
+    if (
+      result.data &&
+      result.data.organization &&
+      result.data.organization.projectsV2
+    ) {
+      const orgProjects = result.data.organization.projectsV2.nodes || [];
+      projects = projects.concat(
+        orgProjects.map((p) => ({
+          id: p.id,
+          name: p.title + " (Organization)",
+          body: p.shortDescription || "",
+          number: p.number,
+          html_url: p.url,
+          state: p.closed ? "closed" : "open",
+          source: "organization",
+        }))
+      );
+    }
+
+    return projects;
+  } catch (error) {
+    Logger.log(`Error getting projects: ${error}`);
+    return [];
+  }
+}
+
+/**
+ * Add an issue to a GitHub project using GraphQL API
+ * @param {string} token - GitHub token
+ * @param {string} projectId - Project ID
+ * @param {string} issueNodeId - Issue node ID
+ * @returns {Object} Response data
+ */
+function addIssueToProject(token, projectId, issueNodeId) {
+  const url = `https://api.github.com/graphql`;
+  const mutation = `
+    mutation {
+      addProjectV2ItemById(input: {
+        projectId: "${projectId}"
+        contentId: "${issueNodeId}"
+      }) {
+        item {
+          id
+        }
+      }
+    }
+  `;
+
+  const options = {
+    method: "post",
+    contentType: "application/json",
+    headers: {
+      Authorization: "bearer " + token,
+    },
+    payload: JSON.stringify({ query: mutation }),
+    muteHttpExceptions: true,
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log(
+        `Failed to add issue to project. Status code: ${responseCode}`
+      );
+      return { success: false, error: `API error: ${responseCode}` };
+    }
+
+    const responseData = JSON.parse(response.getContentText());
+    if (responseData.errors) {
+      return {
+        success: false,
+        error: responseData.errors[0].message || "Unknown GraphQL error",
+      };
+    }
+
+    return { success: true, data: responseData };
+  } catch (error) {
+    Logger.log(`Error adding issue to project: ${error}`);
+    return { success: false, error: error.toString() };
   }
 }
