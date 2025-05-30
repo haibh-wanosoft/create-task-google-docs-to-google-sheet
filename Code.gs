@@ -402,6 +402,52 @@ function createGithubFormHtml() {
             margin-bottom: 20px;
             cursor: pointer;
           }
+          .load-labels-btn {
+            background-color: #0366d6;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .load-labels-btn:hover {
+            background-color: #0256c7;
+          }
+          .labels-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+          }
+          .labels-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+          }
+          .label-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+          }
+          .label-checkbox {
+            margin-right: 8px;
+          }
+          .label-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+          }
+          .labels-loading {
+            text-align: center;
+            padding: 10px;
+          }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
@@ -453,6 +499,20 @@ function createGithubFormHtml() {
               <input type="text" id="templatePath" name="templatePath" required>
               <div class="hint">例：.github/ISSUE_TEMPLATE/normal-task.md</div>
             </div>
+             
+            <div class="form-group">
+              <label>ラベル:</label>
+              <button type="button" onclick="loadLabels()" class="load-labels-btn">ラベルを読み込む</button>
+              <div id="labelsContainer" class="labels-container" style="display:none;">
+                <div class="hint" style="margin-bottom: 10px;">作成するすべてのIssueに適用するラベルを選択してください：</div>
+                <div id="labelsList" class="labels-list"></div>
+              </div>
+              <div id="labelsLoading" class="labels-loading" style="display:none;">
+                <div class="spinner"></div>
+                <span>ラベルを読み込み中...</span>
+              </div>
+              <div id="labelsError" class="error-message" style="display:none; color: red; margin-top: 5px;"></div>
+            </div>
             
             <div class="form-group">
               <label for="enableSubIssue">Sub Issueを有効にする:</label>
@@ -493,7 +553,96 @@ function createGithubFormHtml() {
               })
               .getMainMenu();
           }
-        
+          
+          let loadedLabels = [];
+          
+          function loadLabels() {
+            const githubToken = document.getElementById('githubToken').value.trim();
+            const owner = document.getElementById('owner').value.trim();
+            const repo = document.getElementById('repo').value.trim();
+            
+            if (!githubToken || !owner || !repo) {
+              alert('GitHubトークン、リポジトリ所有者、リポジトリ名を入力してからラベルを読み込んでください。');
+              return;
+            }
+            
+            // Show loading
+            document.getElementById('labelsLoading').style.display = 'block';
+            document.getElementById('labelsContainer').style.display = 'none';
+            document.getElementById('labelsError').style.display = 'none';
+            
+            // Call server function to get labels
+            google.script.run
+              .withSuccessHandler(function(labels) {
+                loadedLabels = labels;
+                displayLabels(labels);
+                document.getElementById('labelsLoading').style.display = 'none';
+                document.getElementById('labelsContainer').style.display = 'block';
+              })
+              .withFailureHandler(function(error) {
+                document.getElementById('labelsLoading').style.display = 'none';
+                document.getElementById('labelsError').style.display = 'block';
+                document.getElementById('labelsError').textContent = 'ラベルの読み込みに失敗しました: ' + error;
+              })
+              .getRepoLabels(githubToken, owner, repo);
+          }
+          
+          function displayLabels(labels) {
+            const labelsList = document.getElementById('labelsList');
+            labelsList.innerHTML = '';
+            
+            if (labels.length === 0) {
+              labelsList.innerHTML = '<p style="color: #666;">ラベルが見つかりませんでした。</p>';
+              return;
+            }
+            
+            labels.forEach((label, index) => {
+              const labelItem = document.createElement('div');
+              labelItem.className = 'label-item';
+              
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.id = 'label_' + index;
+              checkbox.name = 'labels';
+              checkbox.value = label.name;
+              checkbox.className = 'label-checkbox';
+              
+              const labelBadge = document.createElement('label');
+              labelBadge.htmlFor = 'label_' + index;
+              labelBadge.className = 'label-badge';
+              labelBadge.style.backgroundColor = '#' + label.color;
+              labelBadge.style.color = getContrastColor(label.color);
+              labelBadge.textContent = label.name;
+              labelBadge.style.cursor = 'pointer';
+              
+              if (label.description) {
+                labelBadge.title = label.description;
+              }
+              
+              labelItem.appendChild(checkbox);
+              labelItem.appendChild(labelBadge);
+              labelsList.appendChild(labelItem);
+            });
+          }
+          
+          function getContrastColor(hexColor) {
+            // Convert hex to RGB
+            const r = parseInt(hexColor.substr(0, 2), 16);
+            const g = parseInt(hexColor.substr(2, 2), 16);
+            const b = parseInt(hexColor.substr(4, 2), 16);
+            
+            // Calculate luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            
+            // Return black or white based on luminance
+            return luminance > 0.5 ? '#000000' : '#ffffff';
+          }
+          
+          function getSelectedLabels() {
+            const checkboxes = document.querySelectorAll('input[name="labels"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+          }
+          
           function handleSubmit(event) {
             event.preventDefault();
             const form = document.getElementById('githubForm');
@@ -505,6 +654,7 @@ function createGithubFormHtml() {
             const templatePath = form.templatePath.value.trim();
             const enableSubIssue = form.enableSubIssue.checked;
             const parentIssueId = enableSubIssue ? form.parentIssueId.value.trim() : '';
+            const selectedLabels = getSelectedLabels();
             
             // Validate form inputs
             if (!spreadsheetId || !sheetName || !githubToken || !owner || !repo || !templatePath) {
@@ -562,7 +712,8 @@ function createGithubFormHtml() {
                 repo: repo,
                 templatePath: templatePath,
                 enableSubIssue: enableSubIssue,
-                parentIssueId: parentIssueId
+                parentIssueId: parentIssueId,
+                labels: selectedLabels
               });
             
             return false;
@@ -605,6 +756,7 @@ function processGithubForm(formObject) {
     const parentIssueId = formObject.parentIssueId
       ? Number(formObject.parentIssueId)
       : null;
+    const labels = formObject.labels || [];
 
     // Call function to create GitHub issues
     const result = createGithubIssuesFromSheet(
@@ -615,7 +767,8 @@ function processGithubForm(formObject) {
       repo,
       templatePath,
       enableSubIssue,
-      parentIssueId
+      parentIssueId,
+      labels
     );
 
     // Check if there are task-relation errors
@@ -983,6 +1136,7 @@ function processGithubForm(formObject) {
  * @param {string} templatePath - Path to the template
  * @param {boolean} enableSubIssue - Whether to create sub-issues
  * @param {number} parentIssueId - Parent issue ID
+ * @param {Array} labels - Array of label names to apply to all issues
  */
 function createGithubIssuesFromSheet(
   spreadsheetId,
@@ -992,7 +1146,8 @@ function createGithubIssuesFromSheet(
   repo,
   templatePath,
   enableSubIssue = false,
-  parentIssueId = 1
+  parentIssueId = 1,
+  labels = []
 ) {
   // Get sheet from id
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
@@ -1066,7 +1221,8 @@ function createGithubIssuesFromSheet(
         owner,
         repo,
         issueTitle,
-        issueBody
+        issueBody,
+        labels
       );
       const responseData = JSON.parse(response.getContentText());
 
@@ -2329,11 +2485,17 @@ function stripFrontMatter(content) {
 /**
  * Create issue with template
  */
-function createIssueWithTemplate(token, owner, repo, title, body) {
+function createIssueWithTemplate(token, owner, repo, title, body, labels = []) {
   const payload = {
     title,
     body,
   };
+
+  // Add labels if provided
+  if (labels && labels.length > 0) {
+    payload.labels = labels;
+  }
+
   const options = {
     method: "post",
     contentType: "application/json",
@@ -2371,4 +2533,43 @@ function getGithubForm() {
 function getMainMenu() {
   const html = createMainMenuHtml().getContent();
   return html;
+}
+
+/**
+ * Get repository labels from GitHub
+ * @param {string} token - GitHub token
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @returns {Array} Array of label objects with name and color
+ */
+function getRepoLabels(token, owner, repo) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/labels`;
+  const options = {
+    method: "get",
+    headers: {
+      Authorization: "token " + token,
+      Accept: "application/vnd.github+json",
+    },
+    muteHttpExceptions: true,
+  };
+
+  try {
+    const response = UrlFetchApp.fetch(url, options);
+    const responseCode = response.getResponseCode();
+
+    if (responseCode !== 200) {
+      Logger.log(`Failed to get labels: ${responseCode}`);
+      return [];
+    }
+
+    const labels = JSON.parse(response.getContentText());
+    return labels.map((label) => ({
+      name: label.name,
+      color: label.color,
+      description: label.description || "",
+    }));
+  } catch (error) {
+    Logger.log(`Error getting labels: ${error}`);
+    return [];
+  }
 }
