@@ -3272,6 +3272,52 @@ function createProjectFormHtml() {
             margin-bottom: 20px;
             cursor: pointer;
           }
+          .load-labels-btn {
+            background-color: #0366d6;
+            color: white;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+          }
+          .load-labels-btn:hover {
+            background-color: #0256c7;
+          }
+          .labels-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+          }
+          .labels-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+          }
+          .label-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+          }
+          .label-checkbox {
+            margin-right: 8px;
+          }
+          .label-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+          }
+          .labels-loading {
+            text-align: center;
+            padding: 10px;
+          }
           @keyframes spin {
             to { transform: rotate(360deg); }
           }
@@ -3333,6 +3379,20 @@ function createProjectFormHtml() {
               <input type="hidden" id="projectNodeId" name="projectNodeId">
             </div>
             
+            <div class="form-group">
+              <label>ラベル:</label>
+              <button type="button" onclick="loadLabels()" class="load-labels-btn">ラベルを読み込む</button>
+              <div id="labelsContainer" class="labels-container" style="display:none;">
+                <div class="hint" style="margin-bottom: 10px;">作成するすべてのIssueに適用するラベルを選択してください：</div>
+                <div id="labelsList" class="labels-list"></div>
+              </div>
+              <div id="labelsLoading" class="labels-loading" style="display:none;">
+                <div class="spinner"></div>
+                <span>ラベルを読み込み中...</span>
+              </div>
+              <div id="labelsError" class="error-message" style="display:none; color: red; margin-top: 5px;"></div>
+            </div>
+            
             <div id="statusMessage" class="status-message">
               <div class="spinner"></div>
               <span id="statusText">処理中...</span>
@@ -3358,6 +3418,7 @@ function createProjectFormHtml() {
           }
           
           let loadedProjects = [];
+          let loadedLabels = [];
           
           function loadProjects() {
             const githubToken = document.getElementById('githubToken').value.trim();
@@ -3388,6 +3449,93 @@ function createProjectFormHtml() {
                 document.getElementById('projectsError').textContent = 'プロジェクトの読み込みに失敗しました: ' + error;
               })
               .getRepoProjects(githubToken, owner, repo);
+          }
+          
+          function loadLabels() {
+            const githubToken = document.getElementById('githubToken').value.trim();
+            const owner = document.getElementById('owner').value.trim();
+            const repo = document.getElementById('repo').value.trim();
+            
+            if (!githubToken || !owner || !repo) {
+              alert('GitHubトークン、リポジトリ所有者、リポジトリ名を入力してからラベルを読み込んでください。');
+              return;
+            }
+            
+            // Show loading
+            document.getElementById('labelsLoading').style.display = 'block';
+            document.getElementById('labelsContainer').style.display = 'none';
+            document.getElementById('labelsError').style.display = 'none';
+            
+            // Call server function to get labels
+            google.script.run
+              .withSuccessHandler(function(labels) {
+                loadedLabels = labels;
+                displayLabels(labels);
+                document.getElementById('labelsLoading').style.display = 'none';
+                document.getElementById('labelsContainer').style.display = 'block';
+              })
+              .withFailureHandler(function(error) {
+                document.getElementById('labelsLoading').style.display = 'none';
+                document.getElementById('labelsError').style.display = 'block';
+                document.getElementById('labelsError').textContent = 'ラベルの読み込みに失敗しました: ' + error;
+              })
+              .getRepoLabels(githubToken, owner, repo);
+          }
+          
+          function displayLabels(labels) {
+            const labelsList = document.getElementById('labelsList');
+            labelsList.innerHTML = '';
+            
+            if (labels.length === 0) {
+              labelsList.innerHTML = '<p style="color: #666;">ラベルが見つかりませんでした。</p>';
+              return;
+            }
+            
+            labels.forEach((label, index) => {
+              const labelItem = document.createElement('div');
+              labelItem.className = 'label-item';
+              
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.id = 'label_' + index;
+              checkbox.name = 'labels';
+              checkbox.value = label.name;
+              checkbox.className = 'label-checkbox';
+              
+              const labelBadge = document.createElement('label');
+              labelBadge.htmlFor = 'label_' + index;
+              labelBadge.className = 'label-badge';
+              labelBadge.style.backgroundColor = '#' + label.color;
+              labelBadge.style.color = getContrastColor(label.color);
+              labelBadge.textContent = label.name;
+              labelBadge.style.cursor = 'pointer';
+              
+              if (label.description) {
+                labelBadge.title = label.description;
+              }
+              
+              labelItem.appendChild(checkbox);
+              labelItem.appendChild(labelBadge);
+              labelsList.appendChild(labelItem);
+            });
+          }
+          
+          function getContrastColor(hexColor) {
+            // Convert hex to RGB
+            const r = parseInt(hexColor.substr(0, 2), 16);
+            const g = parseInt(hexColor.substr(2, 2), 16);
+            const b = parseInt(hexColor.substr(4, 2), 16);
+            
+            // Calculate luminance
+            const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            
+            // Return black or white based on luminance
+            return luminance > 0.5 ? '#000000' : '#ffffff';
+          }
+          
+          function getSelectedLabels() {
+            const checkboxes = document.querySelectorAll('input[name="labels"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
           }
           
           function displayProjects(projects) {
@@ -3449,6 +3597,7 @@ function createProjectFormHtml() {
             const owner = form.owner.value.trim();
             const repo = form.repo.value.trim();
             const projectNodeId = form.projectNodeId.value.trim();
+            const selectedLabels = getSelectedLabels();
             
             // Validate form inputs
             if (!spreadsheetId || !sheetName || !githubToken || !owner || !repo) {
@@ -3504,7 +3653,8 @@ function createProjectFormHtml() {
                 githubToken: githubToken,
                 owner: owner,
                 repo: repo,
-                projectNodeId: projectNodeId
+                projectNodeId: projectNodeId,
+                labels: selectedLabels
               });
             
             return false;
@@ -3534,6 +3684,7 @@ function processProjectForm(formObject) {
     const owner = formObject.owner;
     const repo = formObject.repo;
     const projectNodeId = formObject.projectNodeId;
+    const labels = formObject.labels || [];
 
     // Process tasks and add to project
     const result = processTasksAndAddToProject(
@@ -3542,7 +3693,8 @@ function processProjectForm(formObject) {
       githubToken,
       owner,
       repo,
-      projectNodeId
+      projectNodeId,
+      labels
     );
 
     // Create HTML result to display
@@ -3632,6 +3784,14 @@ function processProjectForm(formObject) {
               margin-left: 8px;
               vertical-align: middle;
             }
+            .label-badge {
+              display: inline-block;
+              font-size: 11px;
+              padding: 2px 6px;
+              border-radius: 10px;
+              margin-right: 5px;
+              color: white;
+            }
             .error-section {
               background-color: #f8d7da;
               border: 1px solid #f5c6cb;
@@ -3693,6 +3853,11 @@ function processProjectForm(formObject) {
             <p>シート名: ${sheetName}</p>
             <p>リポジトリ: ${owner}/${repo}</p>
             <p>Project ID: ${projectNodeId}</p>
+            ${
+              labels && labels.length > 0
+                ? `<p>適用されたラベル: ${labels.join(", ")}</p>`
+                : ""
+            }
             
             <div class="stats">
               <div class="stat-item created">
@@ -3722,8 +3887,22 @@ function processProjectForm(formObject) {
                     (issue) =>
                       `<div class="issue-item">
                     <span class="issue-number">#${issue.number}</span> - 
-                    <a href="${issue.html_url}" target="_blank">${issue.title}</a>
+                    <a href="${issue.html_url}" target="_blank">${
+                        issue.title
+                      }</a>
                     <span class="project-badge">Projectに追加済み</span>
+                    ${
+                      issue.labels && issue.labels.length > 0
+                        ? issue.labels
+                            .map(
+                              (label) =>
+                                `<span class="label-badge" style="background-color: #${
+                                  label.color || "767676"
+                                };">${label.name}</span>`
+                            )
+                            .join("")
+                        : ""
+                    }
                   </div>`
                   )
                   .join("")}
@@ -3862,6 +4041,7 @@ function processProjectForm(formObject) {
  * @param {string} owner - Repository owner
  * @param {string} repo - Repository name
  * @param {string} projectNodeId - Project node ID
+ * @param {Array} labels - Array of label names to apply to all issues
  * @returns {Object} Result with issues created, skipped, and errors
  */
 function processTasksAndAddToProject(
@@ -3870,7 +4050,8 @@ function processTasksAndAddToProject(
   githubToken,
   owner,
   repo,
-  projectNodeId
+  projectNodeId,
+  labels = []
 ) {
   // Get sheet from id
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
@@ -3947,13 +4128,14 @@ function processTasksAndAddToProject(
 
       Logger.log(`Creating issue for row ${i + 1}: "${issueTitle}"`);
 
-      // Create issue and add to project
-      const issueNodeId = createIssue(
+      // Create issue and add to project - now with labels
+      const issueNodeId = createIssueWithLabels(
         owner,
         repo,
         issueTitle,
         issueBody,
-        githubToken
+        githubToken,
+        labels
       );
 
       // Add to project
@@ -3979,6 +4161,7 @@ function processTasksAndAddToProject(
           title: issueDetails.title,
           number: issueDetails.number,
           html_url: issueDetails.html_url,
+          labels: issueDetails.labels || [], // Include the labels
           rowIndex: i + 1,
         });
 
@@ -4039,4 +4222,51 @@ function getLatestIssue(owner, repo, token) {
 function getProjectForm() {
   const html = createProjectFormHtml().getContent();
   return html;
+}
+
+/**
+ * create issue with labels
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {string} title - Issue title
+ * @param {string} body - Issue body
+ * @param {string} token - GitHub token
+ * @param {Array} labels - Array of label names to apply to the issue
+ * @returns {string} Issue node_id
+ */
+function createIssueWithLabels(owner, repo, title, body, token, labels = []) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues`;
+  const payload = {
+    title: title,
+    body: body,
+  };
+
+  // Add labels if provided
+  if (labels && labels.length > 0) {
+    payload.labels = labels;
+  }
+
+  const options = {
+    method: "post",
+    contentType: "application/json",
+    headers: {
+      Authorization: "token " + token,
+      Accept: "application/vnd.github+json",
+    },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true,
+  };
+  const response = UrlFetchApp.fetch(url, options);
+  const issue = JSON.parse(response.getContentText());
+  Logger.log(
+    "Created issue: " +
+      issue.number +
+      ", id: " +
+      issue.id +
+      ", node_id: " +
+      issue.node_id +
+      ", labels: " +
+      JSON.stringify(issue.labels)
+  );
+  return issue.node_id;
 }
